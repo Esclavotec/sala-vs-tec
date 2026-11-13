@@ -88,9 +88,9 @@ for pos, q, titulo, sub, img_nom in nuevas:
     texto(sl, Inches(0.75), Inches(4.25), Inches(6.6), Inches(0.9), sub, 15, OSC, bold=False)
     texto(sl, Inches(0.75), Inches(5.4), Inches(6.6), Inches(0.9), "Respondan antes de ver el dato del TEC.", 13, RGBColor(0x7A,0x5A,0x5C), bold=False)
     # QR grande en la banda roja
-    caja = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, W - Inches(4.55), Inches(0.75), Inches(3.8), Inches(3.8))
+    caja = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, W - Inches(4.55), Inches(0.92), Inches(3.62), Inches(3.62))
     caja.adjustments[0] = 0.06; caja.fill.solid(); caja.fill.fore_color.rgb = BLANCO; caja.line.fill.background()
-    sl.shapes.add_picture("qr.png", W - Inches(4.4), Inches(0.9), Inches(3.5), Inches(3.5))
+    sl.shapes.add_picture("qr.png", W - Inches(4.4), Inches(1.06), Inches(3.34), Inches(3.34))
     texto(sl, W - Inches(5.0), Inches(4.75), Inches(4.7), Inches(0.35), "ESCANEEN O ENTREN A", 11, DUR, spacing=150, align=PP_ALIGN.CENTER)
     texto(sl, W - Inches(5.0), Inches(5.1), Inches(4.7), Inches(0.55), DIR, 22, BLANCO, align=PP_ALIGN.CENTER)
     texto(sl, W - Inches(5.0), Inches(5.75), Inches(4.7), Inches(0.35), "Y ESCRIBAN EL CÓDIGO", 11, DUR, spacing=150, align=PP_ALIGN.CENTER)
@@ -103,5 +103,30 @@ for pos, q, titulo, sub, img_nom in nuevas:
 # Reordenar: insertar cada nueva diapositiva antes de la original (de atrás hacia adelante)
 for pos, el in sorted(creadas, key=lambda t: -t[0]):
     ids.remove(el); ids.insert(pos, el)
+# Transformación (Morph): las diapositivas de votación quedaron entre dos que se
+# transformaban. Se les copia la etiqueta "!!captag" de la diapositiva siguiente
+# (en blanco si sobre la franja roja no se vería) y la transición Transformación.
+import copy as _copy
+from lxml import etree as _et
+_NS_MC = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+lista = list(prs.slides)
+for idx, sl in enumerate(lista):
+    if not any(sh.name.startswith("EN VIVO") or (sh.has_text_frame and sh.text_frame.text.startswith("EN VIVO · PREGUNTA")) for sh in sl.shapes):
+        continue
+    sig = lista[idx + 1]
+    tag = next((sh for sh in sig.shapes if sh.name == "!!captag"), None)
+    if tag is None:
+        continue
+    el = _copy.deepcopy(tag._element)
+    xml = _et.tostring(el).decode()
+    if 'srgbClr val="8A0B14"' in xml.split("<p:txBody")[0]:      # pastilla roja -> blanca con texto rojo
+        xml = xml.replace("8A0B14", "TMPCLR").replace("F6EAE7", "8A0B14").replace("TMPCLR", "F6EAE7")
+        el = _et.fromstring(xml)
+    usados = {int(c.get("id")) for c in sl._element.iter("{http://schemas.openxmlformats.org/presentationml/2006/main}cNvPr") if (c.get("id") or "").isdigit()}
+    el.find(".//{http://schemas.openxmlformats.org/presentationml/2006/main}cNvPr").set("id", str(max(usados) + 1))  # id único en la diapositiva
+    sl.shapes._spTree.append(el)
+    alt = sig._element.find("{%s}AlternateContent" % _NS_MC)
+    if alt is not None and sl._element.find("{%s}AlternateContent" % _NS_MC) is None:
+        sl._element.append(_copy.deepcopy(alt))
 prs.save(sal)
 print("ok", len(prs.slides), "diapositivas")

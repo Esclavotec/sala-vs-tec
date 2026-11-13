@@ -32,7 +32,7 @@ El público responde desde el celular (QR **o** dirección + código) y la panta
 | `red.js` | Conexión (Firebase por REST, sin librerías) + cola de reintentos + modo demo. |
 | `qr.js` | Generador de QR propio (funciona sin internet). |
 | `img/` | Imágenes de la presentación comprimidas. |
-| `diapositivas/` | Las 25 diapositivas como imágenes, más una imagen por paso de animación y `animaciones.js` con los tiempos. |
+| `diapositivas/` | Las 25 diapositivas como imágenes, más una imagen por paso de animación `animaciones.js` con los tiempos, y `morf/` + `transformaciones.js` para la Transformación. |
 | `database.rules.json`, `firebase.json` | Configuración para Firebase. |
 | `pruebas/` | Pruebas automáticas (no se suben a internet). |
 
@@ -103,10 +103,11 @@ Diap 1 → Diap 2 (PREGUNTA 1: se activa sola en los celulares, contador "EN VIV
 | F | Pantalla completa |
 
 - Los botones y el contador **EN VIVO · N respuestas** están en una **franja negra arriba**; la diapositiva se acomoda debajo y nada la tapa.
+- **Transformación (Morph)**: se recreó como en PowerPoint (1,2 s). Los elementos con el mismo nombre viajan y cambian de tamaño entre diapositivas seguidas: la imagen, el número y el título de las preguntas 1 a 3 (diapositivas 2 → 3 → 4), la etiqueta "Cap." (9 → 10 → … → 23) y la pareja (24 → 25). Solo pasa al avanzar directo; después de una pantalla de resultados se usa desvanecer. Si se presiona → durante la Transformación, termina al instante.
 - **Animaciones del PowerPoint**: se recrearon la transición desvanecer y las animaciones de las diapositivas 5, 19 y 20 (automáticas) y 13, 17 y 21 (aparecen con →, igual que con clic en PowerPoint). Las barras de la 19 entran con barrido.
 - **Palabras inapropiadas en la nube**: un clic sobre la palabra la oculta.
 - **Si se cae el internet**: aparece un aviso amarillo; los celulares guardan el voto y lo envían solos al volver la red. Mientras tanto, usen la mano alzada.
-- **Si cambias el PowerPoint**: hay que volver a convertir las diapositivas (carpeta `diapositivas/`). `animaciones.js` se genera leyendo las animaciones del .pptx, así que también se actualizan solas. El modo anterior, solo con preguntas, sigue disponible en `pantalla.html?sinpresentacion`.
+- **Si cambias el PowerPoint**: hay que volver a convertir las diapositivas (carpeta `diapositivas/`). `herramientas/animaciones.py` y `herramientas/transformaciones.py` leen las animaciones y la Transformación del .pptx, así que también se actualizan solas. El modo anterior, solo con preguntas, sigue disponible en `pantalla.html?sinpresentacion`.
 
 ## 6. Ensayar sin internet
 
@@ -130,6 +131,7 @@ Abre `demo.html` (o la demo publicada): verás la pantalla y dos celulares simul
 | ✔ | `prueba_presentacion.py`: 16 pruebas del modo presentación (pregunta automática al llegar a la diapositiva, contador, resultados, revelado, volver atrás, última diapositiva, portada) |
 | ✔ | La nube de palabras no se superpone (se mide cada palabra en pantalla; 0 solapes con 15 palabras) |
 | ✔ | `prueba_vista.py`: la vista del público no cuenta en los resultados |
+| ✔ | `prueba_transformacion.py`: 9 pruebas de la Transformación (los elementos se mueven, terminan en la diapositiva correcta, luego corren las animaciones, al volver atrás no se transforma) |
 | ✔ | `prueba_animaciones.py`: la franja no tapa la diapositiva, el contador está en la esquina, animaciones automáticas, por clic y con barrido, y al volver atrás no se repiten |
 
 ## 8. Privacidad
