@@ -32,6 +32,7 @@ El público responde desde el celular (QR **o** dirección + código) y la panta
 | `red.js` | Conexión (Firebase por REST, sin librerías) + cola de reintentos + modo demo. |
 | `qr.js` | Generador de QR propio (funciona sin internet). |
 | `img/` | Imágenes de la presentación comprimidas. |
+| `diapositivas/` | Las 25 diapositivas como imágenes (modo presentación). |
 | `database.rules.json`, `firebase.json` | Configuración para Firebase. |
 | `pruebas/` | Pruebas automáticas (no se suben a internet). |
 
@@ -65,30 +66,46 @@ Edita `config.js` en el repositorio `Esclavotec/sala-vs-tec` y GitHub Pages lo p
 
 ---
 
-## 5. El día de la exposición
+## 5. El día de la exposición (modo presentación: todo en una sola ventana)
 
-**Antes (en el aula):**
-1. Abre `https://esclavotec.github.io/sala-vs-tec/pantalla.html` en la laptop. El punto verde arriba a la derecha indica que hay conexión.
-2. Presiona **↺ Reiniciar votos** (dos clics) para borrar los ensayos.
-3. Deja abiertas la presentación y la pantalla y cambia entre ellas con **Alt + Tab**.
+Ya no hace falta abrir el PowerPoint ni cambiar de ventana: **las 25 diapositivas están dentro de la pantalla**.
+
+```
+Diap 1 → Diap 2 (PREGUNTA 1: se activa sola en los celulares, contador "EN VIVO")
+       → Resultados en vivo → Espacio = dato del TEC
+       → Diap 3 → … → Diap 10 (PREGUNTA 3) → Resultados → Diap 11 → …
+```
+
+| Diapositiva | Se activa sola |
+|---|---|
+| 2 | Pregunta 1 · ¿Te has enamorado? |
+| 4 | Pregunta 2 · nube de palabras |
+| 10 | Pregunta 3 · ¿Qué te pasa primero? |
+| 13 | Pregunta 4 · ¿Persona o versión? |
+| 14 | Pregunta 5 · Adivina el % |
+| 18 | Pregunta 6 · ¿Qué pesa más? |
+| 25 | Los celulares muestran “Gracias” |
+
+**Antes:**
+1. Abre `https://esclavotec.github.io/sala-vs-tec/pantalla.html` en la laptop conectada al proyector y presiona **F** (pantalla completa).
+2. Mueve el mouse hacia abajo para que aparezcan los botones y presiona **Reiniciar votos** dos veces para borrar los ensayos.
 
 **Durante:**
 
 | Tecla | Acción |
 |---|---|
-| → / Av Pág | Siguiente pregunta (funciona con el control de diapositivas) |
+| → / Av Pág / Espacio en una diapositiva | Siguiente (diapositiva o resultados) — sirve el control de diapositivas |
 | ← / Re Pág | Anterior |
-| **Espacio** | Revelar / ocultar el dato del TEC |
-| **M** | Panel de mano alzada |
-| **1–5** | +1 a esa opción a mano alzada (Mayús + número = −1) |
-| **V** | **Vista del público**: muestra en grande cómo se ve el celular (no cuenta en los resultados) |
-| I | Portada con el QR grande |
+| **Espacio** en los resultados | Revelar / ocultar el dato del TEC |
+| **M** | Panel de mano alzada · **1–5** suman, Mayús + número resta |
+| **V** | Vista del público: cómo se ve en el celular (no cuenta en los resultados) |
+| I | Portada con el QR grande (otra vez I para volver) |
 | F | Pantalla completa |
 
-- Al llegar a cada diapositiva de pregunta: Alt+Tab → ▶ → esperan unos 30 s → Espacio → Alt+Tab y siguen.
-- **Gente sin datos/celular**: que levanten la mano, cuéntenlas con M + números. Se suman a las barras.
+- Los botones están ocultos para no tapar las diapositivas: aparecen al mover el mouse.
 - **Palabras inapropiadas en la nube**: un clic sobre la palabra la oculta.
-- **Si se cae el internet**: aparece un aviso amarillo. Los celulares guardan el voto y lo envían solos cuando vuelve la red; mientras tanto, usen la mano alzada. Los datos del TEC siempre se muestran porque vienen dentro de la página.
+- **Si se cae el internet**: aparece un aviso amarillo; los celulares guardan el voto y lo envían solos al volver la red. Mientras tanto, usen la mano alzada.
+- **Si cambias el PowerPoint**: hay que volver a convertir las diapositivas en imágenes (carpeta `diapositivas/`). El modo anterior, solo con preguntas, sigue disponible en `pantalla.html?sinpresentacion`.
 
 ## 6. Ensayar sin internet
 
@@ -109,6 +126,9 @@ Abre `demo.html` (o la demo publicada): verás la pantalla y dos celulares simul
 | ✔ | Reiniciar vacía la sala y los celulares olvidan sus respuestas |
 | ✔ | `prueba_demo.py`: el modo demo funciona sin Firebase |
 | ✔ | Los QR (pantalla y .pptx) se leyeron con un lector de QR |
+| ✔ | `prueba_presentacion.py`: 16 pruebas del modo presentación (pregunta automática al llegar a la diapositiva, contador, resultados, revelado, volver atrás, última diapositiva, portada) |
+| ✔ | La nube de palabras no se superpone (se mide cada palabra en pantalla; 0 solapes con 15 palabras) |
+| ✔ | `prueba_vista.py`: la vista del público no cuenta en los resultados |
 
 ## 8. Privacidad
 

@@ -9,7 +9,12 @@
   los resultados en vivo y, al "revelar", la comparación con los 103 del TEC.
 
   TECLAS (también sirven los botones de abajo y el control de diapositivas):
-    → / Re Pág / Av Pág ...... siguiente / anterior pregunta
+    MODO PRESENTACIÓN (config.js → DIAPOSITIVAS): las diapositivas se muestran aquí
+    mismo. Al llegar a una diapositiva de pregunta, la pregunta se activa sola en los
+    celulares; la flecha siguiente muestra los resultados en vivo y la otra sigue la
+    presentación. Abrir con ?sinpresentacion para usar solo las preguntas.
+
+    → / Re Pág / Av Pág ...... siguiente / anterior (diapositiva o pregunta)
     Espacio ................... revelar / ocultar dato del TEC
     M ......................... panel de mano alzada (votos sin celular)
     1–5 ....................... +1 a esa opción a mano alzada (Mayús = −1)
@@ -62,7 +67,7 @@ h1{color:var(--rojo);font-size:5vh;line-height:1.12;margin:1vh 0 2.4vh}
 .nota{background:#fff;border-left:.8vh solid var(--dur);border-radius:1vh;padding:1.4vh 1.4vw;font-size:2vh;margin-top:2vh;animation:entra .5s}
 .titular{font-size:2.8vh;font-weight:700;color:var(--osc);margin-top:1.6vh;animation:entra .5s}
 #nube{flex:1;position:relative}
-#nube span{position:absolute;font-weight:700;white-space:nowrap;transform:translate(-50%,-50%);cursor:pointer;transition:all .6s cubic-bezier(.2,.8,.2,1);animation:aparece .6s}
+#nube span{position:absolute;font-weight:700;white-space:nowrap;line-height:1.1;transform:translate(-50%,-50%);cursor:pointer;transition:left .6s cubic-bezier(.2,.8,.2,1),top .6s cubic-bezier(.2,.8,.2,1),color .6s;animation:aparece .6s}
 @keyframes aparece{from{opacity:0;transform:translate(-50%,-50%) scale(.3)}}
 #nube span:hover{text-decoration:line-through;opacity:.5}
 .voces{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4vw;margin-top:1vh}
@@ -109,6 +114,18 @@ h1{color:var(--rojo);font-size:5vh;line-height:1.12;margin:1vh 0 2.4vh}
 #vista .sw button,#vista .cerrar{border:0;border-radius:1vh;padding:1.2vh 1.4vw;font:700 2vh Arial;cursor:pointer;background:rgba(255,255,255,.15);color:#fff}
 #vista .sw button.on{background:#fff;color:var(--rojo)}
 #vista .cerrar{position:absolute;top:3vh;right:3vw;font-size:2.4vh}
+/* ----- Modo presentación ----- */
+body.endiap header{display:none}
+.diap{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
+.diap img{width:100%;height:100%;object-fit:contain;animation:fundido .35s ease}
+@keyframes fundido{from{opacity:.35}}
+.envivo{position:absolute;right:2vw;bottom:2.4vh;background:rgba(77,5,9,.92);color:#fff;padding:1vh 1.4vw;border-radius:3vh;font-size:1.8vh;font-weight:700;letter-spacing:.04em;box-shadow:0 1vh 3vh rgba(0,0,0,.3)}
+.envivo .pt{display:inline-block;width:1.2vh;height:1.2vh;border-radius:50%;background:#7CF08C;margin-right:.6vw;vertical-align:middle;animation:parp 1.4s infinite}
+.envivo small{font-weight:400;opacity:.75;margin-left:.6vw}
+body.pres footer{position:fixed;left:0;right:0;bottom:0;z-index:6;transform:translateY(100%);transition:transform .25s}
+body.pres.ctl footer{transform:none}
+body.pres:not(.ctl){cursor:none}
+.dnum{font-size:1.6vh;font-weight:700;color:var(--rojo);white-space:nowrap}
 footer{flex:none;display:flex;gap:.8vw;align-items:center;padding:1vh 2vw;background:#fff;border-top:1px solid rgba(0,0,0,.06)}
 footer button{white-space:nowrap;border:0;border-radius:1vh;padding:1vh 1.2vw;font:700 1.7vh Arial;background:var(--crema);color:var(--rojo);cursor:pointer}
 footer button.p{background:var(--rojo);color:#fff}
@@ -132,7 +149,7 @@ footer .dots i.on{background:var(--rojo)}
   <button class="cerrar" id="vCerrar">✕ Cerrar (V)</button>
   <div class="tel"><iframe id="vFrame" name="yovista" title="Vista del celular"></iframe></div>
   <div class="info">
-    <h2>Así se ve en su celular 📱</h2>
+    <h2>Así se ve en su celular</h2>
     <p>Escaneen el QR o entren a <b id="vDir"></b></p>
     <p>y escriban el código</p>
     <div class="codg" id="vCod"></div>
@@ -147,13 +164,13 @@ footer .dots i.on{background:var(--rojo)}
   <button id="bAnt" title="Flecha izquierda">◀ Anterior</button>
   <button id="bRev" class="p" title="Espacio">Revelar dato TEC</button>
   <button id="bSig" class="p" title="Flecha derecha">Siguiente ▶</button>
-  <button id="bMano" title="Tecla M">✋ Mano alzada</button>
-  <button id="bVista" title="Tecla V">📱 Vista del público</button>
+  <button id="bMano" title="Tecla M">Mano alzada</button>
+  <button id="bVista" title="Tecla V">Vista del público</button>
   <span class="esp"></span>
   <span class="modo" id="modo"></span>
-  <button id="bSim" style="display:none">🧪 Simular 30 votos</button>
+  <button id="bSim" style="display:none">Simular 30 votos</button>
   <button id="bReset">↺ Reiniciar votos</button>
-  <button id="bFull" title="Tecla F">⛶</button>
+  <button id="bFull" title="Tecla F">Pantalla completa</button>
 </footer>
 <script src="config.js"></script>
 <script src="qr.js"></script>
@@ -196,7 +213,33 @@ var ctl=Sala.pantalla(function(d){
 var iniciado=false;
 function publicar(){estado.t=Date.now();Sala.guardarLS("estadoPantalla",JSON.stringify(estado));ctl.publicar(estado).catch(function(){});pintar(true)}
 function ir(q){estado={q:Math.max(-1,Math.min(P.length,q)),fase:"votando",reinicio:estado.reinicio};publicar()}
-function revelar(){if(estado.q<0||estado.q>=P.length)return;estado.fase=estado.fase==="revelado"?"votando":"revelado";publicar()}
+function revelar(){if(estado.q<0||estado.q>=P.length)return;if(pres&&pasos[paso].t!=="r")return;estado.fase=estado.fase==="revelado"?"votando":"revelado";
+  if(pres){revelados[estado.q]=estado.fase==="revelado";Sala.guardarLS("revelados",JSON.stringify(revelados))}publicar()}
+
+// ---------- Modo presentación ----------
+// Cada diapositiva es un "paso". Después de cada diapositiva de pregunta se agrega
+// un paso extra de resultados en vivo. Al entrar a la diapositiva de pregunta, los
+// celulares reciben la pregunta solos.
+var D=CONFIG.DIAPOSITIVAS,pres=!!(D&&D.total)&&!qs.has("sinpresentacion"),pasos=[],paso=0,revelados={},verPortada=false;
+function rutaDiap(n){return(D.carpeta||"diapositivas/")+(n<10?"0":"")+n+".webp"}
+if(pres){
+  for(var sd=1;sd<=D.total;sd++){var qi=D.preguntas[sd];pasos.push({t:"d",n:sd,q:qi===undefined?null:qi});if(qi!==undefined)pasos.push({t:"r",q:qi})}
+  try{paso=Math.min(pasos.length-1,Math.max(0,+Sala.leerLS("paso")||0));revelados=JSON.parse(Sala.leerLS("revelados"))||{}}catch(e){}
+  document.body.classList.add("pres");iniciado=true;
+  for(sd=1;sd<=D.total;sd++){var pre=new Image();pre.src=rutaDiap(sd)}   // precarga para que no haya esperas
+}
+function irPaso(i,forzar){
+  paso=Math.max(0,Math.min(pasos.length-1,i));Sala.guardarLS("paso",String(paso));verPortada=false;
+  var ps=pasos[paso],q,f="votando";
+  if(ps.q!==null){q=ps.q;if(ps.t==="r"&&revelados[q])f="revelado"}
+  else q=ps.n===D.total?P.length:-1;   // entre preguntas los celulares esperan; la última diapositiva = gracias
+  if(forzar||q!==estado.q||f!==estado.fase){estado={q:q,fase:f,reinicio:estado.reinicio};publicar()}else pintar(true);
+}
+function siguiente(){if(pres)irPaso(paso+1);else ir(estado.q+1)}
+function anterior(){if(pres)irPaso(paso-1);else ir(estado.q-1)}
+function portadaToggle(){if(pres){verPortada=!verPortada;pintar(true)}else ir(-1)}
+var tCtl=null;
+addEventListener("mousemove",function(){if(!pres)return;document.body.classList.add("ctl");clearTimeout(tCtl);tCtl=setTimeout(function(){document.body.classList.remove("ctl")},2500)});
 
 // ---------- Cálculos ----------
 function votosDe(p){var v=(datos.votos||{})[p.id]||{};return Object.keys(v).map(function(k){return v[k]}).filter(function(x){return x&&x.v!==undefined&&x.a!==Sala.ALIAS_VISTA})}
@@ -215,7 +258,16 @@ function pintar(forzar){
   var g=contarGente();$("nGente").textContent=g;
   var dots="";for(var i=0;i<P.length;i++)dots+='<i class="'+(i<=estado.q?"on":"")+'"></i>';$("dots").innerHTML=dots;
   $("bRev").textContent=estado.fase==="revelado"?"Ocultar dato TEC":"Revelar dato TEC";
-  var q=estado.q,main=$("main"),firma=q+"|"+estado.fase;
+  var ps=pres&&!verPortada?pasos[paso]:null;
+  document.body.classList.toggle("endiap",!!(ps&&ps.t==="d"));
+  if(pres)$("dots").innerHTML='<span class="dnum">'+(verPortada?"Portada":ps.t==="d"?"Diapositiva "+ps.n+" / "+D.total:"Resultados · pregunta "+(ps.q+1))+'</span>';
+  if(ps&&ps.t==="d"){
+    var fd="d"+ps.n;
+    if(forzar||firmaPintada!==fd){firmaPintada=fd;$("main").innerHTML='<div class="diap"><img src="'+rutaDiap(ps.n)+'" alt="Diapositiva '+ps.n+'">'+(ps.q!==null?'<div class="envivo" id="envivo"></div>':'')+'</div>'}
+    if(ps.q!==null){var pq=P[ps.q],nr=pq.tipo==="opciones"?conteo(pq).total:votosDe(pq).length;$("envivo").innerHTML='<span class="pt"></span>EN VIVO · <b>'+nr+'</b> respuestas<small>→ ver resultados</small>'}
+    pintarMano();return;
+  }
+  var q=verPortada?-1:estado.q,main=$("main"),firma=q+"|"+estado.fase+"|"+verPortada;
   var nueva=forzar||firma!==firmaPintada;firmaPintada=firma;
   if(q<0){if(nueva)main.innerHTML=portada();$("nP")&&($("nP").textContent=g);pintarMano();return}
   if(q>=P.length){if(nueva)main.innerHTML=fin();else actualizarFin();pintarMano();return}
@@ -225,11 +277,11 @@ function pintar(forzar){
   pintarMano();
 }
 function portada(){
-  return '<div class="portada"><div class="qrg">'+svgGrande+'</div><div><h2>¡Saquen el celular! 📱</h2>'+
+  return '<div class="portada"><div class="qrg">'+svgGrande+'</div><div><h2>¡Saquen el celular!</h2>'+
   '<div class="paso">1 · Escaneen el QR <b>o</b> entren a</div><div class="dir">'+h(dirMostrar)+'</div>'+
   '<div class="paso">2 · Escriban el código</div><div class="codg">'+h(Sala.CODIGO)+'</div>'+
   '<div class="paso" style="margin-top:3vh">Ya hay <b id="nP">0</b> personas dentro · todo es anónimo</div>'+
-  '<div class="alt">Abre la versión ligera (para señal débil). ¿Buena señal? Desde el celular pueden pasar a la versión completa.<br>¿Sin celular? Levanten la mano: también cuenta.</div></div></div>';
+  '</div></div>';
 }
 function fin(){return '<div class="portada" style="grid-template-columns:1fr;text-align:center"><div><h2>¡Gracias por participar!</h2><div class="paso" id="finStats"></div><div class="paso" style="font-size:3.4vh;color:var(--rojo);margin-top:4vh">¿Qué es el amor para ti… y qué parte de esa respuesta es realmente tuya?</div></div></div>'+'<span id="finDummy"></span>'}
 function actualizarFin(){}
@@ -244,14 +296,14 @@ function barras(p,nueva){
     if(rev&&p.tec)html+='<div class="leyenda"><span><i style="background:var(--rojo)"></i>La sala (hoy)</span><span><i style="background:var(--dur)"></i>'+h(p.tecNota)+'</span></div><div class="titular" id="tit"></div>';
     else if(rev)html+='<div class="nota">'+h(p.tecNota)+'</div>';
     z.innerHTML=html;
-    if(rev&&p.tec)requestAnimationFrame(function(){p.tec.forEach(function(t,i){$("t"+i).style.width=t+"%";etiqueta($("tl"+i),t,"TEC "+fmt(t)+"%",false)})});
+    if(rev&&p.tec)requestAnimationFrame(function(){p.tec.forEach(function(t,i){if(!$("t"+i))return;$("t"+i).style.width=t+"%";etiqueta($("tl"+i),t,"TEC "+fmt(t)+"%",false)})});
   }
   requestAnimationFrame(function(){
-    p.opciones.forEach(function(o,i){var pct=k.total?k.c[i]/k.total*100:0,e=$("b"+i);if(!e)return;e.style.width=pct+"%";etiqueta($("l"+i),pct,Math.round(pct)+"% · "+k.c[i],true);$("mn"+i).textContent=k.mano[i]?"✋ "+k.mano[i]:""});
+    p.opciones.forEach(function(o,i){var pct=k.total?k.c[i]/k.total*100:0,e=$("b"+i);if(!e)return;e.style.width=pct+"%";etiqueta($("l"+i),pct,Math.round(pct)+"% · "+k.c[i],true);if($("mn"+i))$("mn"+i).textContent=k.mano[i]?""+k.mano[i]:""});
     if(rev&&p.tec&&$("tit")&&k.total){
       var mx=k.c.indexOf(Math.max.apply(null,k.c)),mt=p.tec.indexOf(Math.max.apply(null,p.tec));
       var empate=k.c.filter(function(n){return n===k.c[mx]}).length>1;
-      $("tit").textContent=empate?"⚖ ¡Empate en la sala! En el TEC gana «"+p.opciones[mt]+"» ("+fmt(p.tec[mt])+"%).":mx===mt?"✔ La sala coincide con el TEC: gana «"+p.opciones[mx]+"».":"✘ ¡La sala piensa distinto! Aquí gana «"+p.opciones[mx]+"», en el TEC «"+p.opciones[mt]+"».";
+      $("tit").textContent=empate?"¡Empate en la sala! En el TEC gana «"+p.opciones[mt]+"» ("+fmt(p.tec[mt])+"%).":mx===mt?"La sala coincide con el TEC: gana «"+p.opciones[mx]+"».":"¡La sala piensa distinto! Aquí gana «"+p.opciones[mx]+"», en el TEC «"+p.opciones[mt]+"».";
     }
   });
 }
@@ -268,22 +320,28 @@ function nube(p,nueva){
   if(nueva||z.dataset.rev!==String(rev)){z.dataset.rev=rev;z.innerHTML='<div id="nube"></div>'+(rev?'<div class="voces">'+p.voces.map(function(v,i){return'<div style="animation-delay:'+i*.15+'s">'+h(v)+'</div>'}).join("")+'</div><div class="leyenda">'+h(p.tecNota)+'</div>':'')}
   var cont=$("nube"),W=cont.clientWidth,H=cont.clientHeight;if(!W||!H)return;
   var mx=lista.length?cuenta[lista[0]]:1,colocadas=[],vh=innerHeight/100,colores=["#8A0B14","#4d0509","#c0392b","#b5654a","#8A0B14","#6d2a2e"];
-  var existentes={};[].forEach.call(cont.children,function(s){existentes[s.dataset.w]=s});
-  var html=[];
+  var existentes={};Array.prototype.slice.call(cont.children).forEach(function(s){if(s.dataset.w&&!existentes[s.dataset.w])existentes[s.dataset.w]=s;else s.remove()});
+  // 1) crear o actualizar cada palabra con su tamaño; 2) medir el tamaño REAL en pantalla;
+  // 3) colocarlas en espiral sin que se toquen (se mide en el DOM, no se estima).
+  var items=[];
   lista.forEach(function(w,i){
-    var fs=Math.round((2.4+6.6*Math.sqrt(cuenta[w]/mx))*vh);
-    medidor.font="700 "+fs+"px Arial";var ww=medidor.measureText(w).width+fs*.4,hh=fs*1.1;
+    var fs=Math.round((2.4+6.6*Math.sqrt(cuenta[w]/mx))*vh),s=existentes[w];
+    if(!s){s=document.createElement("span");s.dataset.w=w;s.textContent=w;s.title="Clic para ocultar";s.style.left=W/2+"px";s.style.top=H/2+"px";
+      s.onclick=function(){ocultas[w]=1;Sala.guardarLS("ocultas",JSON.stringify(ocultas));pintar()};cont.appendChild(s)}
+    s.style.fontSize=fs+"px";s.style.color=colores[i%colores.length];items.push({s:s,fs:fs});
+  });
+  items.forEach(function(it){it.w=it.s.offsetWidth+it.fs*.35;it.h=it.s.offsetHeight+it.fs*.1});
+  items.forEach(function(it){
     var pos=null;
-    for(var t=0;t<1600&&!pos;t++){var a=t*.35,r=1.6*t*.9,x=W/2+r*Math.cos(a)*1.6,y=H/2+r*Math.sin(a);
-      var R={x:x-ww/2,y:y-hh/2,w:ww,h:hh};
+    for(var t=0;t<4000&&!pos;t++){var a=t*.3,r=t*1.1,x=W/2+r*Math.cos(a)*1.6,y=H/2+r*Math.sin(a);
+      var R={x:x-it.w/2,y:y-it.h/2,w:it.w,h:it.h};
       if(R.x<0||R.y<0||R.x+R.w>W||R.y+R.h>H)continue;
       if(!colocadas.some(function(o){return R.x<o.x+o.w&&R.x+R.w>o.x&&R.y<o.y+o.h&&R.y+R.h>o.y}))pos=R}
-    if(!pos)return;colocadas.push(pos);
-    var s=existentes[w];
-    if(!s){s=document.createElement("span");s.dataset.w=w;s.textContent=w;s.title="Clic para ocultar";s.onclick=function(){ocultas[w]=1;Sala.guardarLS("ocultas",JSON.stringify(ocultas));pintar()};cont.appendChild(s)}
-    s.style.left=(pos.x+pos.w/2)+"px";s.style.top=(pos.y+pos.h/2)+"px";s.style.fontSize=fs+"px";s.style.color=colores[i%colores.length];s.dataset.ok=1;
+    if(!pos)return;   // no cabe: no se muestra (son las menos repetidas)
+    colocadas.push(pos);it.s.style.left=(pos.x+pos.w/2)+"px";it.s.style.top=(pos.y+pos.h/2)+"px";it.s.dataset.ok=1;
   });
-  [].forEach.call(cont.children,function(s){if(!s.dataset.ok)s.remove();delete s.dataset.ok});
+  // copia fija de la lista: borrar mientras se recorre la lista "viva" se salta elementos
+  Array.prototype.slice.call(cont.children).forEach(function(s){if(!s.dataset.ok)s.remove();else delete s.dataset.ok});
   if(!lista.length&&!cont.children.length)cont.innerHTML='<div style="position:absolute;inset:0;display:grid;place-items:center;font-size:3vh;color:#b49a9c">Esperando las primeras palabras…</div>';
   else{var e=cont.querySelector("div");if(e&&lista.length)e.remove()}
 }
@@ -301,10 +359,10 @@ function adivina(p,nueva){
     z.innerHTML=html;
   }
   requestAnimationFrame(function(){
-    cub.forEach(function(n,i){var c=$("c"+i);c.style.height=(n/mx*88)+"%";c.firstChild.textContent=n||""});
-    var mp=$("mp");if(prom!==null){mp.style.display="";mp.style.left=prom+"%";mp.firstChild.textContent="Sala "+fmt(prom)+"%"}
+    cub.forEach(function(n,i){var c=$("c"+i);if(!c)return;c.style.height=(n/mx*88)+"%";c.firstChild.textContent=n||""});
+    var mp=$("mp");if(mp&&prom!==null){mp.style.display="";mp.style.left=prom+"%";mp.firstChild.textContent="Sala "+fmt(prom)+"%"}
     if(rev&&$("podio")){
-      var top=vs.slice().sort(function(a,b){return Math.abs(a.v-p.respuesta)-Math.abs(b.v-p.respuesta)}).slice(0,3),med=["🥇","🥈","🥉"];
+      var top=vs.slice().sort(function(a,b){return Math.abs(a.v-p.respuesta)-Math.abs(b.v-p.respuesta)}).slice(0,3),med=["1.º","2.º","3.º"];
       $("podio").innerHTML=top.length?top.map(function(x,i){return'<div style="animation-delay:'+i*.2+'s">'+med[i]+'<b>'+h(x.a||"Anónimo")+'</b>apostó '+x.v+'% · a '+fmt(Math.abs(x.v-p.respuesta))+' pts</div>'}).join(""):'<div>Nadie apostó todavía</div>';
     }
   });
@@ -319,8 +377,8 @@ function pintarMano(){
   var el=$("mano"),p=P[estado.q];
   if(!manoAbierta){el.style.display="none";return}
   el.style.display="block";
-  if(!p||p.tipo!=="opciones"){el.innerHTML='<h3>✋ Mano alzada</h3><div class="s">Esta pregunta no usa conteo a mano (es de escribir o apostar). Quien no tenga celular puede decirla en voz alta.</div>';return}
-  var m=manos[p.id]||[],html='<h3>✋ Mano alzada · cuenten las manos</h3>';
+  if(!p||p.tipo!=="opciones"){el.innerHTML='<h3>Mano alzada</h3><div class="s">Esta pregunta no usa conteo a mano (es de escribir o apostar). Quien no tenga celular puede decirla en voz alta.</div>';return}
+  var m=manos[p.id]||[],html='<h3>Mano alzada · cuenten las manos</h3>';
   p.opciones.forEach(function(o,i){html+='<div class="r"><button data-d="-1" data-i="'+i+'">−</button><b>'+(m[i]||0)+'</b><button data-d="1" data-i="'+i+'">+</button><span>'+(i+1)+' · '+h(o)+'</span></div>'});
   html+='<div class="s">Atajo: teclas 1–'+p.opciones.length+' suman, Mayús + número resta. Se suman a las barras.</div>';
   el.innerHTML=html;
@@ -339,7 +397,7 @@ function simular(){
 }
 
 // ---------- Botones y teclado ----------
-$("bIni").onclick=function(){ir(-1)};$("bAnt").onclick=function(){ir(estado.q-1)};$("bSig").onclick=function(){ir(estado.q+1)};
+$("bIni").onclick=portadaToggle;$("bAnt").onclick=anterior;$("bSig").onclick=siguiente;
 $("bRev").onclick=revelar;$("bMano").onclick=function(){manoAbierta=!manoAbierta;pintarMano()};$("bSim").onclick=simular;
 // ---------- Vista del público (vista previa del celular) ----------
 var vistaVer="completa.html";
@@ -353,25 +411,30 @@ $("bFull").onclick=function(){if(document.fullscreenElement)document.exitFullscr
 $("bReset").onclick=function(){
   if(!confirmarReset())return;
   manos={};ocultas={};Sala.guardarLS("manos","{}");Sala.guardarLS("ocultas","{}");
-  ctl.reiniciar().catch(function(){});estado={q:-1,fase:"votando",reinicio:String(Date.now())};publicar();
+  ctl.reiniciar().catch(function(){});
+  if(pres){revelados={};Sala.guardarLS("revelados","{}");estado.reinicio=String(Date.now());irPaso(paso,true)}
+  else{estado={q:-1,fase:"votando",reinicio:String(Date.now())};publicar()}
 };
 var resetPend=0;function confirmarReset(){var ahora=Date.now();if(ahora-resetPend<3000){resetPend=0;$("bReset").textContent="↺ Reiniciar votos";return true}resetPend=ahora;$("bReset").textContent="¿Seguro? clic otra vez";setTimeout(function(){$("bReset").textContent="↺ Reiniciar votos"},3000);return false}
 document.addEventListener("keydown",function(e){
   if(e.target.tagName==="INPUT")return;var k=e.key;
-  if(k==="ArrowRight"||k==="PageDown"){e.preventDefault();ir(estado.q+1)}
-  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();ir(estado.q-1)}
-  else if(k===" "||k==="Enter"){e.preventDefault();revelar()}
+  if(k==="ArrowRight"||k==="PageDown"||k==="ArrowDown"){e.preventDefault();siguiente()}
+  else if(k==="ArrowLeft"||k==="PageUp"||k==="ArrowUp"){e.preventDefault();anterior()}
+  else if(k===" "||k==="Enter"){e.preventDefault();if(pres&&!verPortada&&pasos[paso].t==="d")siguiente();else revelar()}
   else if(k==="m"||k==="M"){manoAbierta=!manoAbierta;pintarMano()}
   else if(k==="v"||k==="V")vista();
   else if(k==="Escape")vista(false);
-  else if(k==="i"||k==="I")ir(-1);
+  else if(k==="i"||k==="I")portadaToggle();
   else if(k==="f"||k==="F")$("bFull").onclick();
   else if(/^Digit[1-9]$/.test(e.code)){sumarMano(+e.code.slice(5)-1,e.shiftKey?-1:1)}
 });
 addEventListener("resize",function(){pintar(true)});
+if(pres){try{var g0=JSON.parse(Sala.leerLS("estadoPantalla"));if(g0)estado.reinicio=g0.reinicio}catch(e){}irPaso(paso,true)}
+else{
 try{var guardado=JSON.parse(Sala.leerLS("estadoPantalla"));if(guardado){estado=guardado;iniciado=true}}catch(e){}
 pintar(true);
 ctl.publicar(estado).catch(function(){});
+}
 // Quitar el foco de los botones para que Espacio no los vuelva a activar
 document.querySelector("footer").addEventListener("click",function(){if(document.activeElement)document.activeElement.blur()});
 })();

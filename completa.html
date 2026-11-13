@@ -71,7 +71,7 @@ canvas#cf{position:fixed;inset:0;pointer-events:none;z-index:5}
 "use strict";
 var P=CONFIG.PREGUNTAS,m=document.getElementById("m"),st=document.getElementById("st"),f=document.getElementById("f");
 var qs=new URLSearchParams(location.search),estado=null,cambiar=false,pend=0,con=true,ultimaQ=null;
-var ICONOS={q1:["💘","🙅"],q3:["💓","🦋","😰","🌙","🍽️"],q4:["🧍","💭","🌗"],q6:["🫀","🧠","👥"]};
+var ICONOS={};
 function h(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function fmt(n){return String(Math.round(n*10)/10).replace(".",",")}
 
@@ -90,35 +90,35 @@ Sala.alCambiarConexion(function(ok){con=ok;estadoRed()});
 Sala.alCambiarCola(function(n){pend=n;estadoRed();if(estado)pintar(false)});
 
 function entrar(){
-  m.innerHTML='<div class="card"><img class="hero" src="img/pareja.webp" alt=""><h1>Entra a la sala</h1><p>Escribe el código que ves en la pantalla:</p><input type="text" class="cod" id="c" maxlength="10" autocomplete="off" placeholder="CÓDIGO"><button class="btn" id="go">Entrar ❤</button><p id="err" class="e"></p></div>';
+  m.innerHTML='<div class="card"><img class="hero" src="img/pareja.webp" alt=""><h1>Entra a la sala</h1><p>Escribe el código que ves en la pantalla:</p><input type="text" class="cod" id="c" maxlength="10" autocomplete="off" placeholder="CÓDIGO"><button class="btn" id="go">Entrar</button><p id="err" class="e"></p></div>';
   var c=document.getElementById("c");c.value=qs.get("c")||"";
   function ir(){if(Sala.limpiarCodigo(c.value)===Sala.CODIGO){Sala.guardarLS("dentro","1");iniciar()}else{document.getElementById("err").textContent="Ese código no es. Revisa la pantalla.";c.animate&&c.animate([{transform:"translateX(-8px)"},{transform:"translateX(8px)"},{transform:"none"}],{duration:250,iterations:2})}}
   document.getElementById("go").onclick=ir;c.onkeydown=function(e){if(e.key==="Enter")ir()};
 }
 function iniciar(){
-  m.innerHTML='<div class="card espera"><div class="latido">💓</div><p class="s">Conectando…</p></div>';
+  m.innerHTML='<div class="card espera"><div class="latido">♥</div><p class="s">Conectando…</p></div>';
   var u=new URLSearchParams(location.search);u.set("c",Sala.CODIGO);
   f.innerHTML='¿La señal está lenta? <a href="'+(qs.get("lig")||"index.html")+'?'+u+'">Cambiar a versión ligera</a>';
   Sala.votante(function(e){estado=e;cambiar=false;pintar(true)});
 }
 function pintar(nuevo){
   var e=estado,q=e.q,html;
-  if(q<0){m.innerHTML='<div class="card espera"><div class="latido">💓</div><h1>¡Estás dentro!</h1><p>Tu nombre anónimo es<br><span class="yo">'+h(Sala.miAlias())+'</span></p><p class="s">Las preguntas aparecen aquí solas cuando el grupo avance.</p></div>';return}
+  if(q<0){m.innerHTML='<div class="card espera"><div class="latido">♥</div><h1>¡Estás dentro!</h1><p>Tu nombre anónimo es<br><span class="yo">'+h(Sala.miAlias())+'</span></p><p class="s">Las preguntas aparecen aquí solas cuando el grupo avance.</p></div>';return}
   if(q>=P.length){m.innerHTML='<div class="card espera"><img class="hero" src="img/pareja.webp" alt=""><h1>¡Gracias por participar!</h1><p>“¿Qué es el amor para ti… y qué parte de esa respuesta es realmente tuya?”</p></div>';if(nuevo)confeti();return}
   var p=P[q],mia=Sala.misRespuestas()[p.id];
   html='<div class="card"'+(nuevo||ultimaQ!==q?"":' style="animation:none"')+'><img class="hero" src="img/'+p.img+'.webp" alt=""><div class="num">Pregunta '+(q+1)+' de '+P.length+'</div><h1>'+h(p.titulo)+'</h1>';
   ultimaQ=q;
   if(e.fase==="revelado"){m.innerHTML=html+resultado(p,mia)+'</div>';requestAnimationFrame(function(){[].forEach.call(m.querySelectorAll("[data-w]"),function(d){d.style.width=d.dataset.w+"%"})});return}
   if(mia!==undefined&&!cambiar){
-    m.innerHTML=html+'<div class="ok"><div class="tic">✓</div><div>Respondiste: <b>'+h(texto(p,mia))+'</b><br><span class="s">'+(pend?"Enviando… se reintenta solo":"¡Recibido! Mira la pantalla 👀")+'</span></div></div><button class="btn sec" id="cb">Cambiar respuesta</button></div>';
+    m.innerHTML=html+'<div class="ok"><div class="tic">✓</div><div>Respondiste: <b>'+h(texto(p,mia))+'</b><br><span class="s">'+(pend?"Enviando… se reintenta solo":"¡Recibido! Mira la pantalla")+'</span></div></div><button class="btn sec" id="cb">Cambiar respuesta</button></div>';
     document.getElementById("cb").onclick=function(){cambiar=true;pintar(false)};return}
   if(p.tipo==="opciones"){var ic=ICONOS[p.id]||[];p.opciones.forEach(function(o,i){html+='<button class="op'+(mia===i?" on":"")+'" data-i="'+i+'"><i>'+(ic[i]||"•")+'</i>'+h(o)+'</button>'});m.innerHTML=html+'</div>';
     [].forEach.call(m.querySelectorAll("[data-i]"),function(b){b.onclick=function(){b.classList.add("on");setTimeout(function(){enviar(p,+b.dataset.i)},160)}})}
-  else if(p.tipo==="palabra"){html+='<input type="text" id="w" maxlength="20" placeholder="Tu palabra…" autocomplete="off"><div class="chips">'+p.sugerencias.map(function(s){return'<button data-s="'+h(s)+'">'+h(s)+'</button>'}).join("")+'</div><button class="btn" id="ok">Enviar a la nube ☁️</button>';m.innerHTML=html+'</div>';
+  else if(p.tipo==="palabra"){html+='<input type="text" id="w" maxlength="20" placeholder="Tu palabra…" autocomplete="off"><div class="chips">'+p.sugerencias.map(function(s){return'<button data-s="'+h(s)+'">'+h(s)+'</button>'}).join("")+'</div><button class="btn" id="ok">Enviar a la nube</button>';m.innerHTML=html+'</div>';
     var w=document.getElementById("w");function ok(){var v=w.value.trim().split(/\s+/)[0];if(v)enviar(p,v.slice(0,20));else w.focus()}
     [].forEach.call(m.querySelectorAll("[data-s]"),function(b){b.onclick=function(){w.value=b.dataset.s}});
     document.getElementById("ok").onclick=ok;w.onkeydown=function(ev){if(ev.key==="Enter")ok()}}
-  else{var v=mia===undefined?50:mia;html+='<div class="big"><span id="nv">'+v+'</span><small>%</small></div><input type="range" id="r" min="0" max="100" value="'+v+'" style="--p:'+v+'%"><div class="s" style="display:flex;justify-content:space-between"><span>Nadie</span><span>Todo el TEC</span></div><button class="btn" id="ok">Apostar 🎯</button>';m.innerHTML=html+'</div>';
+  else{var v=mia===undefined?50:mia;html+='<div class="big"><span id="nv">'+v+'</span><small>%</small></div><input type="range" id="r" min="0" max="100" value="'+v+'" style="--p:'+v+'%"><div class="s" style="display:flex;justify-content:space-between"><span>Nadie</span><span>Todo el TEC</span></div><button class="btn" id="ok">Apostar</button>';m.innerHTML=html+'</div>';
     var r=document.getElementById("r");r.oninput=function(){document.getElementById("nv").textContent=r.value;r.style.setProperty("--p",r.value+"%")};
     document.getElementById("ok").onclick=function(){enviar(p,+r.value)}}
 }
@@ -127,7 +127,7 @@ function enviar(p,v){Sala.votar(p.id,v);cambiar=false;confeti();pintar(false)}
 function resultado(p,mia){
   var s=mia!==undefined?'<div class="ok"><div class="tic">✓</div><div>Tu respuesta: <b>'+h(texto(p,mia))+'</b></div></div>':"";
   if(p.tipo==="numero"){var d=mia===undefined?null:Math.abs(mia-p.respuesta);if(d!==null&&d<=5)setTimeout(confeti,300);
-    return s+'<div class="tec"><div class="s" style="color:#f3c9b5">LA RESPUESTA ES</div><div class="big" style="color:#fff">'+fmt(p.respuesta)+'<small>%</small></div>'+(d!==null?'<p>Estuviste a <b>'+fmt(d)+'</b> puntos '+(d<=5?"🎯 ¡casi exacto!":d<=15?"👏 ¡muy cerca!":"😅")+'</p>':"")+'<div class="s" style="color:#f3c9b5">'+h(p.tecNota)+'</div></div>'}
+    return s+'<div class="tec"><div class="s" style="color:#f3c9b5">LA RESPUESTA ES</div><div class="big" style="color:#fff">'+fmt(p.respuesta)+'<small>%</small></div>'+(d!==null?'<p>Estuviste a <b>'+fmt(d)+'</b> puntos '+(d<=5?"¡casi exacto!":d<=15?"¡muy cerca!":"")+'</p>':"")+'<div class="s" style="color:#f3c9b5">'+h(p.tecNota)+'</div></div>'}
   if(p.tipo==="palabra")return s+'<div class="tec">'+p.voces.map(function(v){return"<p>"+h(v)+"</p>"}).join("")+'<div class="s" style="color:#f3c9b5">'+h(p.tecNota)+'</div></div>';
   var t="";if(p.tec)p.opciones.forEach(function(o,i){t+='<div class="fila">'+h(o)+' <b style="float:right">'+fmt(p.tec[i])+'%</b><div class="bar"><div data-w="'+p.tec[i]+'"></div></div></div>'});
   return s+'<div class="tec"><div class="s" style="color:#f3c9b5">EN EL TEC…</div>'+t+'<div class="s" style="color:#f3c9b5;margin-top:8px">'+h(p.tecNota)+'</div></div>';

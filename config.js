@@ -17,6 +17,14 @@ var CONFIG = {
   CODIGO: "AMOR26",
   DIRECCION: "esclavotec.github.io/sala-vs-tec",
 
+  // Modo presentación: las diapositivas (imágenes en /diapositivas) se muestran en la
+  // pantalla. "preguntas" dice en qué diapositiva se activa cada pregunta (0 = primera).
+  DIAPOSITIVAS: {
+    total: 25,
+    carpeta: "diapositivas/",
+    preguntas: { 2: 0, 4: 1, 10: 2, 13: 3, 14: 4, 18: 5 }
+  },
+
   PREGUNTAS: [
     {
       id: "q1", tipo: "opciones", diapositiva: 2, img: "pareja",
@@ -44,20 +52,20 @@ var CONFIG = {
       tecNota: "TEC: % que lo siente «siempre» o «a veces» (P7, n = 101 a 103)"
     },
     {
-      id: "q4", tipo: "opciones", diapositiva: 12, img: "flores",
+      id: "q4", tipo: "opciones", diapositiva: 13, img: "flores",
       titulo: "¿Te enamoras de la persona… o de la versión que imaginas?",
       opciones: ["De la persona real", "De la versión que imagino", "Un poco de las dos"],
       tec: null,
       tecNota: "TEC: el 65% siempre se imagina compartiendo más tiempo y el 40% se fija siempre más en cualidades que en defectos"
     },
     {
-      id: "q5", tipo: "numero", diapositiva: 13, img: "espejo",
+      id: "q5", tipo: "numero", diapositiva: 14, img: "espejo",
       titulo: "Adivina: ¿qué % del TEC conoció a esa persona en el campus?",
       respuesta: 57.3,
       tecNota: "TEC: 57,3% la conoció en clases, grupos de estudio o actividades de la U (59 de 103)"
     },
     {
-      id: "q6", tipo: "opciones", diapositiva: 16, img: "reflejo",
+      id: "q6", tipo: "opciones", diapositiva: 18, img: "reflejo",
       titulo: "¿Qué pesa más en tu manera de enamorarte?",
       opciones: ["Lo que siento en el cuerpo", "Lo que pienso y he vivido", "Mi entorno social"],
       tec: [15.5, 76.3, 8.2],

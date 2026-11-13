@@ -23,7 +23,7 @@ async def main():
         cp = await br.new_context(viewport={"width": 1600, "height": 900})
         pant = await cp.new_page()
         pant.on("pageerror", lambda e: errores.append("JS pantalla: " + str(e)))
-        await pant.goto(B + "pantalla.html?prueba")
+        await pant.goto(B + "pantalla.html?prueba&sinpresentacion")
         await pant.wait_for_timeout(1200)
         # reinicio limpio
         await pant.click("#bReset"); await pant.click("#bReset"); await pant.wait_for_timeout(800)

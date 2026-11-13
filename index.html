@@ -39,7 +39,7 @@ var P=CONFIG.PREGUNTAS,m=document.getElementById("m"),st=document.getElementById
 var qs=new URLSearchParams(location.search),estado=null,cambiar=false,pend=0,con=true;
 function h(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function fmt(n){return String(Math.round(n*10)/10).replace(".",",")}
-function linkCompleta(){var u=new URLSearchParams(location.search);u.set("c",Sala.CODIGO);f.innerHTML='¿Buena señal? <a href="completa.html?'+u+'">Abrir versión completa ✨</a>'}
+function linkCompleta(){var u=new URLSearchParams(location.search);u.set("c",Sala.CODIGO);f.innerHTML='¿Buena señal? <a href="completa.html?'+u+'">Abrir versión completa</a>'}
 function estadoRed(){st.textContent=!con?"● sin señal":pend?"● enviando…":"● en vivo";st.style.color=!con?"#ffb3b3":pend?"#ffe08a":"#b8f5c0"}
 Sala.alCambiarConexion(function(ok){con=ok;estadoRed()});
 Sala.alCambiarCola(function(n){pend=n;estadoRed();if(estado)pintar()});
@@ -77,7 +77,7 @@ function enviar(p,v){Sala.votar(p.id,v);cambiar=false;pintar()}
 function resultado(p,mia){
   var s=mia!==undefined?'<div class="ok">Tu respuesta: <b>'+h(texto(p,mia))+'</b></div>':"";
   if(p.tipo==="numero"){var d=mia===undefined?null:Math.abs(mia-p.respuesta);
-    return s+'<div class="tec"><b>Respuesta: '+fmt(p.respuesta)+'%</b>'+(d!==null?'<br>Estuviste a '+fmt(d)+' puntos'+(d<=5?" 🎯 ¡casi exacto!":""):"")+'</div>'}
+    return s+'<div class="tec"><b>Respuesta: '+fmt(p.respuesta)+'%</b>'+(d!==null?'<br>Estuviste a '+fmt(d)+' puntos'+(d<=5?" ¡casi exacto!":""):"")+'</div>'}
   var t="";if(p.tec)p.opciones.forEach(function(o,i){t+=o+": <b>"+fmt(p.tec[i])+"%</b><br>"});
   return s+'<div class="tec">'+t+'<span class="s" style="color:#4d0509">'+h(p.tecNota)+'</span></div>';
 }
