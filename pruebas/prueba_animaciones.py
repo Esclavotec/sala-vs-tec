@@ -28,7 +28,7 @@ async def main():
     await ir_a(pg,4);await pg.keyboard.press("ArrowRight");await pg.wait_for_timeout(150);await pg.keyboard.press("ArrowRight");await pg.wait_for_timeout(100);n0=await capas(pg)
     await pg.wait_for_timeout(2200);n1=await capas(pg)
     check(n0==1 and n1==4,f"Diap 5: animaciones automáticas (capas {n0} → {n1})")
-    await ir_a(pg,13);await pg.wait_for_timeout(1600);a=await capas(pg)
+    await ir_a(pg,13);await pg.wait_for_timeout(600);a=await capas(pg)
     await pg.keyboard.press("ArrowRight");await pg.wait_for_timeout(800);b=await capas(pg);t=await pg.text_content(".dnum")
     check(a==1 and b==2 and t.startswith("Diapositiva 13"),f"Diap 13: el elemento aparece con clic sin cambiar de diapositiva ({a} → {b}, {t})")
     await pg.screenshot(path="shots/anim_d13.png")

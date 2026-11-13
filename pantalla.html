@@ -121,7 +121,6 @@ body.endiap header{display:none}
 @keyframes transicion{from{opacity:0}}
 .lienzo{position:relative;flex:none}
 .lienzo img{position:absolute;inset:0;width:100%;height:100%;display:block}
-.lienzo .mf{position:absolute}  /* elemento que viaja en la Transformación */
 body.endiap main{background:#000}
 /* Franja negra superior (modo presentación): nada queda encima de la diapositiva */
 body.pres footer{order:-1;background:#0b0b0b;border:0;padding:.6vh 1.2vw;gap:.6vw}
@@ -183,7 +182,6 @@ footer .dots i.on{background:var(--rojo)}
 <script src="config.js"></script>
 <script src="qr.js"></script>
 <script src="diapositivas/animaciones.js"></script>
-<script src="diapositivas/transformaciones.js"></script>
 <script src="red.js"></script>
 <script>
 (function(){
@@ -251,36 +249,8 @@ function irPaso(i,forzar){
 var A=window.ANIMACIONES||{},diapActual=null,gruposHechos=0,temporizadores=[],direccion=1;
 function rutaImg(nombre){return(D.carpeta||"diapositivas/")+nombre}
 function ajustarLienzo(){var l=document.querySelector(".diap:last-child .lienzo"),m=$("main");if(!l||!m)return;var W=m.clientWidth,H=m.clientHeight,w=Math.min(W,H*16/9);l.style.width=w+"px";l.style.height=(w*9/16)+"px"}
-// Transformación (Morph): diapositivas/transformaciones.js trae, para llegar a N desde
-// la diapositiva anterior, los fondos sin los elementos "!!" y cada elemento recortado
-// con su rect en A y en B. El fondo A se desvanece, aparece B y cada elemento viaja.
-var T=window.TRANSFORMACIONES||{},terminarTransformacion=null;
-Object.keys(T).forEach(function(k){var t=T[k];[t.fondoA,t.fondoB].concat(t.elementos.map(function(e){return(e.a||{}).img}),t.elementos.map(function(e){return(e.b||{}).img})).forEach(function(f){if(f){var im=new Image();im.src=rutaImg(f)}})});
-function transformar(n,tr){
-  var m=$("main"),a=A[n],d=tr.dur,ez="cubic-bezier(.45,0,.25,1)",op={duration:d,easing:ez,fill:"forwards"};
-  Array.prototype.slice.call(m.children).forEach(function(c){c.remove()});
-  var capa=document.createElement("div");capa.className="diap";
-  var h='<div class="lienzo"><img class="fa" alt="" src="'+rutaImg(tr.fondoA)+'"><img class="fb" alt="" src="'+rutaImg(tr.fondoB)+'">';
-  tr.elementos.forEach(function(e,i){var r=(e.a||e.b).rect;h+='<div class="mf" data-i="'+i+'" style="left:'+r[0]+'%;top:'+r[1]+'%;width:'+r[2]+'%;height:'+r[3]+'%">'+(e.a?'<img class="ea" alt="" src="'+rutaImg(e.a.img)+'">':'')+(e.b?'<img class="eb" alt="" src="'+rutaImg(e.b.img)+'"'+(e.a?' style="opacity:0"':'')+'>':'')+'</div>'});
-  capa.innerHTML=h+'</div>';m.appendChild(capa);ajustarLienzo();
-  var l=capa.querySelector(".lienzo");
-  l.querySelector(".fa").animate([{opacity:1},{opacity:0}],op);
-  l.querySelector(".fb").animate([{opacity:0},{opacity:1}],op);
-  Array.prototype.slice.call(l.querySelectorAll(".mf")).forEach(function(el){
-    var e=tr.elementos[+el.dataset.i],ra=(e.a||e.b).rect,rb=(e.b||e.a).rect,ia=el.querySelector(".ea"),ib=el.querySelector(".eb");
-    el.animate([{left:ra[0]+"%",top:ra[1]+"%",width:ra[2]+"%",height:ra[3]+"%"},{left:rb[0]+"%",top:rb[1]+"%",width:rb[2]+"%",height:rb[3]+"%"}],op);
-    if(ia)ia.animate([{opacity:1},{opacity:0}],op);
-    if(ib)ib.animate([{opacity:0},{opacity:1}],op);
-  });
-  diapActual=n;gruposHechos=0;
-  terminarTransformacion=function(){terminarTransformacion=null;if(!l.isConnected)return;
-    l.innerHTML='<img alt="Diapositiva '+n+'" src="'+(a?rutaImg(a.inicio):rutaDiap(n))+'">';if(a)correrAutomaticas(0)};
-  temporizadores.push(setTimeout(function(){if(terminarTransformacion)terminarTransformacion()},d+40));
-}
 function mostrarDiap(n,atras){
-  var tr=T[n],venia=diapActual;
-  temporizadores.forEach(clearTimeout);temporizadores=[];terminarTransformacion=null;
-  if(!atras&&tr&&venia===tr.desde)return transformar(n,tr);
+  temporizadores.forEach(clearTimeout);temporizadores=[];
   var m=$("main"),a=A[n];
   Array.prototype.slice.call(m.children).forEach(function(c){if(!c.classList.contains("diap"))c.remove()});
   var capa=document.createElement("div");capa.className="diap"+(diapActual!==null?" entra":"");
@@ -308,7 +278,6 @@ function reproducir(g,desfase){
   return fin;
 }
 function siguiente(){
-  if(terminarTransformacion)terminarTransformacion();   // si aún se está transformando, se termina al instante
   if(pres&&!verPortada&&pasos[paso].t==="d"){var a=A[pasos[paso].n];
     if(a&&diapActual===pasos[paso].n&&gruposHechos<a.grupos.length){reproducir(a.grupos[gruposHechos],0);gruposHechos++;correrAutomaticas(0);return}}
   if(pres){direccion=1;irPaso(paso+1)}else ir(estado.q+1)}
