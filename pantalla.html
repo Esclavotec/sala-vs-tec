@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pantalla · La sala vs. el TEC</title>
+<!--
+  PANTALLA DEL EXPOSITOR (se proyecta). Muestra QR + dirección + código,
+  los resultados en vivo y, al "revelar", la comparación con los 103 del TEC.
+
+  TECLAS (también sirven los botones de abajo y el control de diapositivas):
+    → / Re Pág / Av Pág ...... siguiente / anterior pregunta
+    Espacio ................... revelar / ocultar dato del TEC
+    M ......................... panel de mano alzada (votos sin celular)
+    1–5 ....................... +1 a esa opción a mano alzada (Mayús = −1)
+    I ......................... volver a la portada con el QR grande
+    F ......................... pantalla completa
+    V ......................... vista del público (cómo se ve en el celular)
+-->
+<style>
+:root{--rojo:#8A0B14;--osc:#4d0509;--crema:#ECE8E3;--dur:#E9AA8C;--txt:#2a0a0c}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--crema);color:var(--txt);display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding:1.4vh 2.4vw;background:var(--rojo);color:#fff;flex:none}
+.marca{font-weight:700;letter-spacing:.18em;font-size:1.5vh}
+.marca small{display:block;letter-spacing:.08em;font-weight:400;opacity:.75;margin-top:.3vh}
+.unirse{display:flex;align-items:center;gap:1.2vw}
+.unirse .qr{width:9vh;height:9vh;background:#fff;border-radius:.8vh;padding:.3vh}
+.unirse .qr svg{width:100%;height:100%;display:block}
+.unirse .txt{font-size:1.7vh;line-height:1.35}
+.unirse .txt b{font-size:2.6vh;letter-spacing:.04em}
+.unirse .cod{display:inline-block;background:#fff;color:var(--rojo);padding:.2vh .8vw;border-radius:.6vh;letter-spacing:.2em;font-size:2.8vh;font-weight:700}
+.gente{font-size:1.8vh;text-align:right}
+.gente b{font-size:3.4vh;display:block}
+.punto{display:inline-block;width:1.2vh;height:1.2vh;border-radius:50%;background:#7CF08C;margin-right:.4vw;vertical-align:middle}
+.punto.mal{background:#ff6b6b;animation:parp 1s infinite}@keyframes parp{50%{opacity:.3}}
+#aviso{display:none;background:#ffe08a;color:var(--osc);text-align:center;padding:.8vh;font-size:1.9vh;font-weight:700}
+main{flex:1;position:relative;overflow:hidden}
+.vista{position:absolute;inset:0;padding:3vh 4vw;display:grid;grid-template-columns:24vw 1fr;gap:3vw;animation:entra .5s ease}
+@keyframes entra{from{opacity:0;transform:translateX(3vw)}}
+.lado{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.lado img{max-width:100%;max-height:44vh;object-fit:contain;filter:drop-shadow(0 2vh 2vh rgba(77,5,9,.15))}
+.etq{display:inline-block;background:var(--rojo);color:#fff;border-radius:3vh;padding:.6vh 1.4vw;font-size:1.6vh;font-weight:700;letter-spacing:.08em;margin-top:2vh}
+.contenido{display:flex;flex-direction:column;min-width:0}
+.num{color:var(--rojo);font-weight:700;letter-spacing:.16em;font-size:1.7vh}
+h1{color:var(--rojo);font-size:5vh;line-height:1.12;margin:1vh 0 2.4vh}
+.resp{font-size:1.9vh;color:#7a5a5c;margin-bottom:1.4vh}
+.resp b{color:var(--rojo);font-size:2.6vh}
+.barras{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2.2vh}
+.fila .nom{font-size:2.5vh;font-weight:700;color:var(--osc);margin-bottom:.6vh;display:flex;justify-content:space-between}
+.pista{height:4.6vh;background:rgba(138,11,20,.08);border-radius:1vh;position:relative;overflow:hidden}
+.pista .b{height:100%;background:var(--rojo);border-radius:1vh;width:0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.pista .l{position:absolute;top:50%;transform:translateY(-50%);left:1vw;font-weight:700;font-size:2.3vh;white-space:nowrap;color:var(--rojo);transition:left .8s cubic-bezier(.2,.8,.2,1)}
+.pista.tec .l{font-size:1.7vh;color:var(--osc)}
+.compacta .barras{gap:1.1vh}.compacta .pista{height:3.6vh}.compacta .pista.tec{height:2.2vh;margin-top:.4vh}.compacta .fila .nom{font-size:2.1vh;margin-bottom:.3vh}.compacta h1{font-size:4.2vh;margin-bottom:1.4vh}
+.pista.tec{height:2.8vh;margin-top:.6vh;background:rgba(233,170,140,.25)}
+.pista.tec .b{background:var(--dur)}
+.fila .mano{font-size:1.6vh;color:#7a5a5c;font-weight:400}
+.leyenda{display:flex;gap:2vw;font-size:1.7vh;margin-top:1vh;color:#7a5a5c}
+.leyenda i{display:inline-block;width:1.6vh;height:1.6vh;border-radius:.4vh;vertical-align:middle;margin-right:.4vw}
+.nota{background:#fff;border-left:.8vh solid var(--dur);border-radius:1vh;padding:1.4vh 1.4vw;font-size:2vh;margin-top:2vh;animation:entra .5s}
+.titular{font-size:2.8vh;font-weight:700;color:var(--osc);margin-top:1.6vh;animation:entra .5s}
+#nube{flex:1;position:relative}
+#nube span{position:absolute;font-weight:700;white-space:nowrap;transform:translate(-50%,-50%);cursor:pointer;transition:all .6s cubic-bezier(.2,.8,.2,1);animation:aparece .6s}
+@keyframes aparece{from{opacity:0;transform:translate(-50%,-50%) scale(.3)}}
+#nube span:hover{text-decoration:line-through;opacity:.5}
+.voces{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4vw;margin-top:1vh}
+.voces div{background:var(--rojo);color:#fff;border-radius:1.4vh;padding:1.6vh 1.2vw;font-size:1.9vh;animation:entra .6s both}
+.hist{flex:1;display:flex;align-items:flex-end;gap:.8vw;position:relative;margin-top:4vh;border-bottom:.3vh solid var(--osc)}
+.hist .c{flex:1;background:var(--rojo);border-radius:.8vh .8vh 0 0;transition:height .8s cubic-bezier(.2,.8,.2,1);position:relative;min-height:.4vh}
+.hist .c span{position:absolute;top:-3vh;left:0;right:0;text-align:center;font-weight:700;font-size:2vh;color:var(--rojo)}
+.ejes{display:flex;gap:.8vw;font-size:1.6vh;color:#7a5a5c;margin-top:.6vh}.ejes span{flex:1;text-align:center}
+.marca-v{position:absolute;top:0;bottom:0;width:.5vh;transform:translateX(-50%);transition:left .8s}
+.marca-v b{position:absolute;top:0;left:50%;transform:translate(-50%,-100%);white-space:nowrap;padding:.4vh .8vw;border-radius:.6vh;font-size:1.8vh}
+.marca-v.prom{background:repeating-linear-gradient(var(--osc) 0 1vh,transparent 1vh 2vh)}.marca-v.prom b{background:var(--osc);color:#fff}
+.marca-v.real{background:var(--dur);width:.9vh;animation:entra .6s}.marca-v.real b{background:var(--dur);color:var(--osc);font-size:2.6vh}
+.podio{display:flex;gap:1.4vw;margin-top:2vh}
+.podio div{flex:1;background:#fff;border-radius:1.4vh;padding:1.4vh 1vw;text-align:center;font-size:2vh;animation:entra .6s both}
+.podio div b{display:block;font-size:2.6vh;color:var(--rojo)}
+/* Portada */
+.portada{position:absolute;inset:0;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5vw;padding:4vh 7vw;animation:entra .5s}
+.portada .qrg{background:#fff;border-radius:2.4vh;padding:2vh;box-shadow:0 3vh 6vh rgba(77,5,9,.15)}
+.portada .qrg svg{width:52vh;height:52vh;display:block}
+.portada h2{font-size:7vh;line-height:1;margin:0 0 3vh;color:var(--rojo)}
+.portada .paso{font-size:2.6vh;margin:1.6vh 0;color:var(--osc)}
+.portada .dir{font-size:5vh;font-weight:700;color:var(--rojo);word-break:break-all}
+.portada .codg{display:inline-block;background:var(--rojo);color:#fff;font-size:8vh;font-weight:700;letter-spacing:.25em;padding:1vh 2vw 1vh 2.8vw;border-radius:1.6vh}
+.portada .alt{font-size:1.9vh;color:#7a5a5c;margin-top:2vh}
+/* Panel mano alzada */
+#mano{display:none;position:absolute;right:2vw;bottom:2vh;width:34vw;background:#fff;border-radius:2vh;box-shadow:0 2vh 6vh rgba(0,0,0,.25);padding:2vh 1.6vw;z-index:4}
+#mano h3{margin:0 0 1vh;color:var(--rojo);font-size:2.2vh}
+#mano .r{display:flex;align-items:center;gap:.8vw;margin:.8vh 0;font-size:1.9vh}
+#mano .r span{flex:1}
+#mano button{width:5vh;height:5vh;border-radius:1vh;border:0;background:var(--crema);color:var(--rojo);font:700 3vh Arial;cursor:pointer}
+#mano .r b{min-width:4vh;text-align:center;font-size:2.6vh}
+#mano .s{font-size:1.5vh;color:#7a5a5c}
+#vista{display:none;position:fixed;inset:0;z-index:10;background:radial-gradient(circle at 30% 40%,#8A0B14,#2a0a0c 75%);align-items:center;justify-content:center;gap:5vw;animation:entra .3s}
+#vista.on{display:flex}
+#vista .tel{width:46vh;height:86vh;border:1.4vh solid #111;border-radius:6vh;overflow:hidden;background:#fff;box-shadow:0 4vh 10vh rgba(0,0,0,.5)}
+#vista .tel iframe{width:100%;height:100%;border:0}
+#vista .info{color:#fff;max-width:36vw}
+#vista .info h2{font-size:6vh;line-height:1.05;margin:0 0 2vh;color:#fff}
+#vista .info p{font-size:2.6vh;margin:1.4vh 0}
+#vista .info .codg{display:inline-block;background:#fff;color:var(--rojo);font-size:5vh;font-weight:700;letter-spacing:.2em;padding:.6vh 1.6vw;border-radius:1.2vh}
+#vista .info .qrv{width:22vh;height:22vh;background:#fff;border-radius:1.6vh;padding:1vh;margin-top:2vh}
+#vista .info .qrv svg{width:100%;height:100%;display:block}
+#vista .sw{display:flex;gap:.8vw;margin-top:3vh}
+#vista .sw button,#vista .cerrar{border:0;border-radius:1vh;padding:1.2vh 1.4vw;font:700 2vh Arial;cursor:pointer;background:rgba(255,255,255,.15);color:#fff}
+#vista .sw button.on{background:#fff;color:var(--rojo)}
+#vista .cerrar{position:absolute;top:3vh;right:3vw;font-size:2.4vh}
+footer{flex:none;display:flex;gap:.8vw;align-items:center;padding:1vh 2vw;background:#fff;border-top:1px solid rgba(0,0,0,.06)}
+footer button{white-space:nowrap;border:0;border-radius:1vh;padding:1vh 1.2vw;font:700 1.7vh Arial;background:var(--crema);color:var(--rojo);cursor:pointer}
+footer button.p{background:var(--rojo);color:#fff}
+footer .esp{flex:1}
+footer .dots{display:flex;gap:.5vw}
+footer .dots i{width:1.2vh;height:1.2vh;border-radius:50%;background:rgba(138,11,20,.2)}
+footer .dots i.on{background:var(--rojo)}
+.modo{font-size:1.5vh;color:#7a5a5c}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">LA SALA vs. EL TEC<small>Enamoramiento · factores biológicos, psicológicos y sociales</small></div>
+  <div class="unirse"><div class="qr" id="qrMini"></div><div class="txt">Entra a <b id="dirMini"></b><br>y escribe el código <span class="cod" id="codMini"></span></div></div>
+  <div class="gente"><span class="punto" id="punto"></span>en la sala<b id="nGente">0</b></div>
+</header>
+<div id="aviso">Señal inestable: los votos del celular pueden tardar. Usa la mano alzada (tecla M) — nada se pierde.</div>
+<main id="main"></main>
+<div id="mano"></div>
+<div id="vista">
+  <button class="cerrar" id="vCerrar">✕ Cerrar (V)</button>
+  <div class="tel"><iframe id="vFrame" name="yovista" title="Vista del celular"></iframe></div>
+  <div class="info">
+    <h2>Así se ve en su celular 📱</h2>
+    <p>Escaneen el QR o entren a <b id="vDir"></b></p>
+    <p>y escriban el código</p>
+    <div class="codg" id="vCod"></div>
+    <div class="qrv" id="vQR"></div>
+    <div class="sw"><button id="vComp" class="on">Versión completa</button><button id="vLig">Versión ligera</button></div>
+    <p style="font-size:1.8vh;opacity:.75">Esta vista previa no cuenta en los resultados.</p>
+  </div>
+</div>
+<footer>
+  <div class="dots" id="dots"></div>
+  <button id="bIni" title="Tecla I">⌂ Portada</button>
+  <button id="bAnt" title="Flecha izquierda">◀ Anterior</button>
+  <button id="bRev" class="p" title="Espacio">Revelar dato TEC</button>
+  <button id="bSig" class="p" title="Flecha derecha">Siguiente ▶</button>
+  <button id="bMano" title="Tecla M">✋ Mano alzada</button>
+  <button id="bVista" title="Tecla V">📱 Vista del público</button>
+  <span class="esp"></span>
+  <span class="modo" id="modo"></span>
+  <button id="bSim" style="display:none">🧪 Simular 30 votos</button>
+  <button id="bReset">↺ Reiniciar votos</button>
+  <button id="bFull" title="Tecla F">⛶</button>
+</footer>
+<script src="config.js"></script>
+<script src="qr.js"></script>
+<script src="red.js"></script>
+<script>
+(function(){
+"use strict";
+var P=CONFIG.PREGUNTAS,qs=new URLSearchParams(location.search);
+var datos={},estado={q:-1,fase:"votando"},ocultas={},manos={},firmaPintada="";
+try{ocultas=JSON.parse(Sala.leerLS("ocultas"))||{}}catch(e){}
+try{manos=JSON.parse(Sala.leerLS("manos"))||{}}catch(e){}
+function $(id){return document.getElementById(id)}
+function h(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(n){return String(Math.round(n*10)/10).replace(".",",")}
+
+// ---------- Dirección, código y QR ----------
+var dirMostrar=(CONFIG.DIRECCION||location.host+location.pathname.replace(/[^\/]*$/,"")).replace(/^https?:\/\//,"").replace(/\/$/,"");
+var baseURL=CONFIG.DIRECCION?("https://"+dirMostrar+"/"):(location.origin+location.pathname.replace(/[^\/]*$/,""));
+var urlQR=baseURL+"?c="+Sala.CODIGO+(Sala.modo==="local"&&!CONFIG.DIRECCION?"&demo":"");
+$("dirMini").textContent=dirMostrar;$("codMini").textContent=Sala.CODIGO;
+var svgMini=QR.svg(urlQR,{margin:1,dark:"#4d0509"}),svgGrande=QR.svg(urlQR,{margin:1,dark:"#4d0509"});
+$("qrMini").innerHTML=svgMini;
+$("modo").textContent=Sala.modo==="local"?"MODO DEMO (sin Firebase)":"En vivo · Firebase";
+if(Sala.modo==="local"||qs.has("prueba"))$("bSim").style.display="";
+
+// ---------- Conexión ----------
+var temporizadorAviso=null;
+Sala.alCambiarConexion(function(ok){
+  $("punto").className="punto"+(ok?"":" mal");
+  clearTimeout(temporizadorAviso);
+  if(ok)$("aviso").style.display="none";else temporizadorAviso=setTimeout(function(){$("aviso").style.display="block"},4000);
+});
+
+// ---------- Control del estado ----------
+var ctl=Sala.pantalla(function(d){
+  datos=d||{};
+  if(datos.estado&&!iniciado){estado=datos.estado;iniciado=true}
+  pintar();
+});
+var iniciado=false;
+function publicar(){estado.t=Date.now();Sala.guardarLS("estadoPantalla",JSON.stringify(estado));ctl.publicar(estado).catch(function(){});pintar(true)}
+function ir(q){estado={q:Math.max(-1,Math.min(P.length,q)),fase:"votando",reinicio:estado.reinicio};publicar()}
+function revelar(){if(estado.q<0||estado.q>=P.length)return;estado.fase=estado.fase==="revelado"?"votando":"revelado";publicar()}
+
+// ---------- Cálculos ----------
+function votosDe(p){var v=(datos.votos||{})[p.id]||{};return Object.keys(v).map(function(k){return v[k]}).filter(function(x){return x&&x.v!==undefined&&x.a!==Sala.ALIAS_VISTA})}
+function contarGente(){var g=datos.gente||{};return Object.keys(g).filter(function(k){return g[k]&&g[k].a!==Sala.ALIAS_VISTA}).length}
+function conteo(p){
+  var c=p.opciones.map(function(){return 0}),m=manos[p.id]||[],cel=0;
+  votosDe(p).forEach(function(x){if(typeof x.v==="number"&&c[x.v]!==undefined){c[x.v]++;cel++}});
+  var conMano=c.map(function(n,i){return n+(m[i]||0)});
+  var total=conMano.reduce(function(a,b){return a+b},0);
+  return{c:conMano,mano:m,cel:cel,total:total};
+}
+function limpiarPalabra(w){return String(w).toLowerCase().trim().replace(/[^a-záéíóúüñ0-9]/gi,"").slice(0,20)}
+
+// ---------- Pintado ----------
+function pintar(forzar){
+  var g=contarGente();$("nGente").textContent=g;
+  var dots="";for(var i=0;i<P.length;i++)dots+='<i class="'+(i<=estado.q?"on":"")+'"></i>';$("dots").innerHTML=dots;
+  $("bRev").textContent=estado.fase==="revelado"?"Ocultar dato TEC":"Revelar dato TEC";
+  var q=estado.q,main=$("main"),firma=q+"|"+estado.fase;
+  var nueva=forzar||firma!==firmaPintada;firmaPintada=firma;
+  if(q<0){if(nueva)main.innerHTML=portada();$("nP")&&($("nP").textContent=g);pintarMano();return}
+  if(q>=P.length){if(nueva)main.innerHTML=fin();else actualizarFin();pintarMano();return}
+  var p=P[q];
+  if(nueva){main.innerHTML='<div class="vista"><div class="lado"><img src="img/'+p.img+'.webp" alt=""><span class="etq">Diapositiva '+p.diapositiva+'</span></div><div class="contenido'+(p.opciones&&p.opciones.length>3?' compacta':'')+'" id="cont"><div class="num">PREGUNTA '+(q+1)+' DE '+P.length+'</div><h1>'+h(p.titulo)+'</h1><div class="resp" id="resp"></div><div id="zona" style="flex:1;display:flex;flex-direction:column"></div></div></div>'}
+  if(p.tipo==="opciones")barras(p,nueva);else if(p.tipo==="palabra")nube(p,nueva);else adivina(p,nueva);
+  pintarMano();
+}
+function portada(){
+  return '<div class="portada"><div class="qrg">'+svgGrande+'</div><div><h2>¡Saquen el celular! 📱</h2>'+
+  '<div class="paso">1 · Escaneen el QR <b>o</b> entren a</div><div class="dir">'+h(dirMostrar)+'</div>'+
+  '<div class="paso">2 · Escriban el código</div><div class="codg">'+h(Sala.CODIGO)+'</div>'+
+  '<div class="paso" style="margin-top:3vh">Ya hay <b id="nP">0</b> personas dentro · todo es anónimo</div>'+
+  '<div class="alt">Abre la versión ligera (para señal débil). ¿Buena señal? Desde el celular pueden pasar a la versión completa.<br>¿Sin celular? Levanten la mano: también cuenta.</div></div></div>';
+}
+function fin(){return '<div class="portada" style="grid-template-columns:1fr;text-align:center"><div><h2>¡Gracias por participar!</h2><div class="paso" id="finStats"></div><div class="paso" style="font-size:3.4vh;color:var(--rojo);margin-top:4vh">¿Qué es el amor para ti… y qué parte de esa respuesta es realmente tuya?</div></div></div>'+'<span id="finDummy"></span>'}
+function actualizarFin(){}
+function barras(p,nueva){
+  var k=conteo(p),rev=estado.fase==="revelado",z=$("zona");
+  $("resp").innerHTML='<b>'+k.total+'</b> respuestas'+(k.total-k.cel?' · '+k.cel+' desde el celular y '+(k.total-k.cel)+' a mano alzada':'');
+  if(nueva||z.dataset.rev!==String(rev)){
+    z.dataset.rev=rev;
+    var html='<div class="barras">';
+    p.opciones.forEach(function(o,i){html+='<div class="fila"><div class="nom"><span>'+h(o)+'</span><span class="mano" id="mn'+i+'"></span></div><div class="pista"><div class="b" id="b'+i+'"></div><span class="l" id="l'+i+'"></span></div>'+(rev&&p.tec?'<div class="pista tec"><div class="b" id="t'+i+'"></div><span class="l" id="tl'+i+'"></span></div>':'')+'</div>'});
+    html+='</div>';
+    if(rev&&p.tec)html+='<div class="leyenda"><span><i style="background:var(--rojo)"></i>La sala (hoy)</span><span><i style="background:var(--dur)"></i>'+h(p.tecNota)+'</span></div><div class="titular" id="tit"></div>';
+    else if(rev)html+='<div class="nota">'+h(p.tecNota)+'</div>';
+    z.innerHTML=html;
+    if(rev&&p.tec)requestAnimationFrame(function(){p.tec.forEach(function(t,i){$("t"+i).style.width=t+"%";etiqueta($("tl"+i),t,"TEC "+fmt(t)+"%",false)})});
+  }
+  requestAnimationFrame(function(){
+    p.opciones.forEach(function(o,i){var pct=k.total?k.c[i]/k.total*100:0,e=$("b"+i);if(!e)return;e.style.width=pct+"%";etiqueta($("l"+i),pct,Math.round(pct)+"% · "+k.c[i],true);$("mn"+i).textContent=k.mano[i]?"✋ "+k.mano[i]:""});
+    if(rev&&p.tec&&$("tit")&&k.total){
+      var mx=k.c.indexOf(Math.max.apply(null,k.c)),mt=p.tec.indexOf(Math.max.apply(null,p.tec));
+      var empate=k.c.filter(function(n){return n===k.c[mx]}).length>1;
+      $("tit").textContent=empate?"⚖ ¡Empate en la sala! En el TEC gana «"+p.opciones[mt]+"» ("+fmt(p.tec[mt])+"%).":mx===mt?"✔ La sala coincide con el TEC: gana «"+p.opciones[mx]+"».":"✘ ¡La sala piensa distinto! Aquí gana «"+p.opciones[mx]+"», en el TEC «"+p.opciones[mt]+"».";
+    }
+  });
+}
+// Etiqueta de la barra: fuera a la derecha si la barra es corta, dentro si es larga
+function etiqueta(el,pct,txt,blanco){el.textContent=txt;if(pct>70){el.style.left="auto";el.style.right="calc("+(100-pct)+"% + 1vw)";if(blanco)el.style.color="#fff"}else{el.style.right="auto";el.style.left="calc("+pct+"% + 1vw)";el.style.color=""}}
+// Nube de palabras con colocación en espiral (sin solapamientos)
+var medidor=document.createElement("canvas").getContext("2d");
+function nube(p,nueva){
+  var z=$("zona"),rev=estado.fase==="revelado",cuenta={};
+  votosDe(p).forEach(function(x){var w=limpiarPalabra(x.v);if(w&&!ocultas[w])cuenta[w]=(cuenta[w]||0)+1});
+  var lista=Object.keys(cuenta).sort(function(a,b){return cuenta[b]-cuenta[a]||a.localeCompare(b)}).slice(0,45);
+  var total=votosDe(p).length;
+  $("resp").innerHTML='<b>'+total+'</b> palabras · '+lista.length+' distintas <span style="font-size:1.5vh">(clic en una palabra para ocultarla)</span>';
+  if(nueva||z.dataset.rev!==String(rev)){z.dataset.rev=rev;z.innerHTML='<div id="nube"></div>'+(rev?'<div class="voces">'+p.voces.map(function(v,i){return'<div style="animation-delay:'+i*.15+'s">'+h(v)+'</div>'}).join("")+'</div><div class="leyenda">'+h(p.tecNota)+'</div>':'')}
+  var cont=$("nube"),W=cont.clientWidth,H=cont.clientHeight;if(!W||!H)return;
+  var mx=lista.length?cuenta[lista[0]]:1,colocadas=[],vh=innerHeight/100,colores=["#8A0B14","#4d0509","#c0392b","#b5654a","#8A0B14","#6d2a2e"];
+  var existentes={};[].forEach.call(cont.children,function(s){existentes[s.dataset.w]=s});
+  var html=[];
+  lista.forEach(function(w,i){
+    var fs=Math.round((2.4+6.6*Math.sqrt(cuenta[w]/mx))*vh);
+    medidor.font="700 "+fs+"px Arial";var ww=medidor.measureText(w).width+fs*.4,hh=fs*1.1;
+    var pos=null;
+    for(var t=0;t<1600&&!pos;t++){var a=t*.35,r=1.6*t*.9,x=W/2+r*Math.cos(a)*1.6,y=H/2+r*Math.sin(a);
+      var R={x:x-ww/2,y:y-hh/2,w:ww,h:hh};
+      if(R.x<0||R.y<0||R.x+R.w>W||R.y+R.h>H)continue;
+      if(!colocadas.some(function(o){return R.x<o.x+o.w&&R.x+R.w>o.x&&R.y<o.y+o.h&&R.y+R.h>o.y}))pos=R}
+    if(!pos)return;colocadas.push(pos);
+    var s=existentes[w];
+    if(!s){s=document.createElement("span");s.dataset.w=w;s.textContent=w;s.title="Clic para ocultar";s.onclick=function(){ocultas[w]=1;Sala.guardarLS("ocultas",JSON.stringify(ocultas));pintar()};cont.appendChild(s)}
+    s.style.left=(pos.x+pos.w/2)+"px";s.style.top=(pos.y+pos.h/2)+"px";s.style.fontSize=fs+"px";s.style.color=colores[i%colores.length];s.dataset.ok=1;
+  });
+  [].forEach.call(cont.children,function(s){if(!s.dataset.ok)s.remove();delete s.dataset.ok});
+  if(!lista.length&&!cont.children.length)cont.innerHTML='<div style="position:absolute;inset:0;display:grid;place-items:center;font-size:3vh;color:#b49a9c">Esperando las primeras palabras…</div>';
+  else{var e=cont.querySelector("div");if(e&&lista.length)e.remove()}
+}
+function adivina(p,nueva){
+  var z=$("zona"),rev=estado.fase==="revelado",vs=votosDe(p).filter(function(x){return typeof x.v==="number"});
+  var cub=[0,0,0,0,0,0,0,0,0,0];vs.forEach(function(x){cub[Math.min(9,Math.floor(x.v/10))]++});
+  var prom=vs.length?vs.reduce(function(a,x){return a+x.v},0)/vs.length:null,mx=Math.max.apply(null,cub.concat([1]));
+  $("resp").innerHTML='<b>'+vs.length+'</b> apuestas'+(prom!==null?' · promedio de la sala <b>'+fmt(prom)+'%</b>':'');
+  if(nueva||z.dataset.rev!==String(rev)){
+    z.dataset.rev=rev;
+    var html='<div class="hist" id="hist">';for(var i=0;i<10;i++)html+='<div class="c" id="c'+i+'"><span></span></div>';
+    html+='<div class="marca-v prom" id="mp" style="display:none"><b>Sala</b></div>'+(rev?'<div class="marca-v real" style="left:'+p.respuesta+'%"><b>TEC '+fmt(p.respuesta)+'%</b></div>':'')+'</div><div class="ejes">';
+    for(i=0;i<10;i++)html+='<span>'+i*10+'–'+(i*10+9+(i===9?1:0))+'%</span>';html+='</div>';
+    if(rev)html+='<div class="podio" id="podio"></div><div class="leyenda">'+h(p.tecNota)+'</div>';
+    z.innerHTML=html;
+  }
+  requestAnimationFrame(function(){
+    cub.forEach(function(n,i){var c=$("c"+i);c.style.height=(n/mx*88)+"%";c.firstChild.textContent=n||""});
+    var mp=$("mp");if(prom!==null){mp.style.display="";mp.style.left=prom+"%";mp.firstChild.textContent="Sala "+fmt(prom)+"%"}
+    if(rev&&$("podio")){
+      var top=vs.slice().sort(function(a,b){return Math.abs(a.v-p.respuesta)-Math.abs(b.v-p.respuesta)}).slice(0,3),med=["🥇","🥈","🥉"];
+      $("podio").innerHTML=top.length?top.map(function(x,i){return'<div style="animation-delay:'+i*.2+'s">'+med[i]+'<b>'+h(x.a||"Anónimo")+'</b>apostó '+x.v+'% · a '+fmt(Math.abs(x.v-p.respuesta))+' pts</div>'}).join(""):'<div>Nadie apostó todavía</div>';
+    }
+  });
+}
+// Estadísticas finales
+var _pintar=pintar;
+pintar=function(f){_pintar(f);if(estado.q>=P.length&&$("finStats")){var g=contarGente(),tv=0;P.forEach(function(p){tv+=votosDe(p).length});$("finStats").innerHTML='<b>'+g+'</b> personas · <b>'+tv+'</b> respuestas desde el celular'}};
+
+// ---------- Mano alzada ----------
+var manoAbierta=false;
+function pintarMano(){
+  var el=$("mano"),p=P[estado.q];
+  if(!manoAbierta){el.style.display="none";return}
+  el.style.display="block";
+  if(!p||p.tipo!=="opciones"){el.innerHTML='<h3>✋ Mano alzada</h3><div class="s">Esta pregunta no usa conteo a mano (es de escribir o apostar). Quien no tenga celular puede decirla en voz alta.</div>';return}
+  var m=manos[p.id]||[],html='<h3>✋ Mano alzada · cuenten las manos</h3>';
+  p.opciones.forEach(function(o,i){html+='<div class="r"><button data-d="-1" data-i="'+i+'">−</button><b>'+(m[i]||0)+'</b><button data-d="1" data-i="'+i+'">+</button><span>'+(i+1)+' · '+h(o)+'</span></div>'});
+  html+='<div class="s">Atajo: teclas 1–'+p.opciones.length+' suman, Mayús + número resta. Se suman a las barras.</div>';
+  el.innerHTML=html;
+  [].forEach.call(el.querySelectorAll("button"),function(b){b.onclick=function(){sumarMano(+b.dataset.i,+b.dataset.d)}});
+}
+function sumarMano(i,d){var p=P[estado.q];if(!p||p.tipo!=="opciones"||i>=p.opciones.length)return;var m=manos[p.id]=manos[p.id]||[];m[i]=Math.max(0,(m[i]||0)+d);Sala.guardarLS("manos",JSON.stringify(manos));pintar()}
+
+// ---------- Simulación (modo demo o ?prueba) ----------
+var PAL=["ilusión","nervios","química","paz","ilusión","costumbre","decisión","mariposas","nervios","ilusión","confianza","química","locura","paz","compromiso","cariño","ilusión","miedo","conexión","nervios"];
+function simular(){
+  var p=P[estado.q];if(!p)return;var n=0;
+  (function uno(){if(n++>=30)return;var vid="sim"+n+"_"+Math.random().toString(36).slice(2,6),v;
+    if(p.tipo==="opciones"){var w=p.tec||p.opciones.map(function(){return 1}),s=w.reduce(function(a,b){return a+b},0),r=Math.random()*s;v=0;while(r>w[v]&&v<w.length-1){r-=w[v];v++}}
+    else if(p.tipo==="palabra")v=PAL[Math.floor(Math.random()*PAL.length)];else v=Math.round(Math.min(100,Math.max(0,45+(Math.random()-.5)*60)));
+    ctl.simular(p.id,vid,{v:v,a:"Sim "+n,t:Date.now()});setTimeout(uno,120)})();
+}
+
+// ---------- Botones y teclado ----------
+$("bIni").onclick=function(){ir(-1)};$("bAnt").onclick=function(){ir(estado.q-1)};$("bSig").onclick=function(){ir(estado.q+1)};
+$("bRev").onclick=revelar;$("bMano").onclick=function(){manoAbierta=!manoAbierta;pintarMano()};$("bSim").onclick=simular;
+// ---------- Vista del público (vista previa del celular) ----------
+var vistaVer="completa.html";
+$("vDir").textContent=dirMostrar;$("vCod").textContent=Sala.CODIGO;$("vQR").innerHTML=svgMini;
+function urlVista(){return vistaVer+"?c="+Sala.CODIGO+"&yo=vista"+(Sala.modo==="local"?"&demo":"")}
+function vista(abrir){var v=$("vista");if(abrir===undefined)abrir=!v.classList.contains("on");v.classList.toggle("on",abrir);if(abrir){var f=$("vFrame");if(!f.src||f.dataset.ver!==vistaVer){f.dataset.ver=vistaVer;f.src=urlVista()}}}
+$("bVista").onclick=function(){vista()};$("vCerrar").onclick=function(){vista(false)};
+$("vComp").onclick=function(){vistaVer="completa.html";$("vComp").className="on";$("vLig").className="";vista(true)};
+$("vLig").onclick=function(){vistaVer=CONFIG.PAGINA_LIGERA||"index.html";$("vLig").className="on";$("vComp").className="";vista(true)};
+$("bFull").onclick=function(){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};
+$("bReset").onclick=function(){
+  if(!confirmarReset())return;
+  manos={};ocultas={};Sala.guardarLS("manos","{}");Sala.guardarLS("ocultas","{}");
+  ctl.reiniciar().catch(function(){});estado={q:-1,fase:"votando",reinicio:String(Date.now())};publicar();
+};
+var resetPend=0;function confirmarReset(){var ahora=Date.now();if(ahora-resetPend<3000){resetPend=0;$("bReset").textContent="↺ Reiniciar votos";return true}resetPend=ahora;$("bReset").textContent="¿Seguro? clic otra vez";setTimeout(function(){$("bReset").textContent="↺ Reiniciar votos"},3000);return false}
+document.addEventListener("keydown",function(e){
+  if(e.target.tagName==="INPUT")return;var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"){e.preventDefault();ir(estado.q+1)}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();ir(estado.q-1)}
+  else if(k===" "||k==="Enter"){e.preventDefault();revelar()}
+  else if(k==="m"||k==="M"){manoAbierta=!manoAbierta;pintarMano()}
+  else if(k==="v"||k==="V")vista();
+  else if(k==="Escape")vista(false);
+  else if(k==="i"||k==="I")ir(-1);
+  else if(k==="f"||k==="F")$("bFull").onclick();
+  else if(/^Digit[1-9]$/.test(e.code)){sumarMano(+e.code.slice(5)-1,e.shiftKey?-1:1)}
+});
+addEventListener("resize",function(){pintar(true)});
+try{var guardado=JSON.parse(Sala.leerLS("estadoPantalla"));if(guardado){estado=guardado;iniciado=true}}catch(e){}
+pintar(true);
+ctl.publicar(estado).catch(function(){});
+// Quitar el foco de los botones para que Espacio no los vuelva a activar
+document.querySelector("footer").addEventListener("click",function(){if(document.activeElement)document.activeElement.blur()});
+})();
+</script>
+</body>
+</html>

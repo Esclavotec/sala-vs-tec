@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#8A0B14">
+<title>La sala vs. el TEC · versión ligera</title>
+<!--
+  VERSIÓN LIGERA del celular (la que abre el QR).
+  Sin imágenes ni fuentes externas: pensada para señal débil (~15 KB en total).
+  Flujo: escribir código → esperar pregunta → tocar respuesta → ver dato del TEC.
+-->
+<style>
+*{box-sizing:border-box}body{margin:0;font:17px/1.4 Arial,Helvetica,sans-serif;background:#ECE8E3;color:#2a0a0c}
+header{background:#8A0B14;color:#fff;padding:12px 16px;font-weight:700;letter-spacing:.06em;font-size:13px;display:flex;justify-content:space-between}
+main{padding:20px 16px;max-width:520px;margin:auto}
+h1{font-size:24px;color:#8A0B14;margin:.2em 0 .8em}
+.b{display:block;width:100%;padding:16px;margin:10px 0;border:2px solid #8A0B14;border-radius:14px;background:#fff;color:#8A0B14;font:700 18px Arial;text-align:left}
+.b.on{background:#8A0B14;color:#fff}.p{background:#8A0B14;color:#fff;text-align:center}
+input{width:100%;padding:14px;font:700 22px Arial;border:2px solid #8A0B14;border-radius:12px;text-align:center;text-transform:uppercase;letter-spacing:.15em}
+input.w{text-transform:none;letter-spacing:0}
+.n{font-size:56px;font-weight:700;color:#8A0B14;text-align:center}
+.s{color:#7a5a5c;font-size:14px}.e{color:#b00020;font-weight:700}
+.ok{background:#fff;border-radius:14px;padding:16px;margin:12px 0;border-left:6px solid #8A0B14}
+.tec{background:#E9AA8C;border-radius:14px;padding:16px;margin:12px 0}
+footer{text-align:center;padding:16px;font-size:14px}a{color:#8A0B14}
+#st{font-size:12px}
+</style>
+</head>
+<body>
+<header><span>LA SALA vs. EL TEC</span><span id="st"></span></header>
+<main id="m"></main>
+<footer id="f"></footer>
+<script src="config.js"></script>
+<script src="red.js"></script>
+<script>
+(function(){
+var P=CONFIG.PREGUNTAS,m=document.getElementById("m"),st=document.getElementById("st"),f=document.getElementById("f");
+var qs=new URLSearchParams(location.search),estado=null,cambiar=false,pend=0,con=true;
+function h(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(n){return String(Math.round(n*10)/10).replace(".",",")}
+function linkCompleta(){var u=new URLSearchParams(location.search);u.set("c",Sala.CODIGO);f.innerHTML='¿Buena señal? <a href="completa.html?'+u+'">Abrir versión completa ✨</a>'}
+function estadoRed(){st.textContent=!con?"● sin señal":pend?"● enviando…":"● en vivo";st.style.color=!con?"#ffb3b3":pend?"#ffe08a":"#b8f5c0"}
+Sala.alCambiarConexion(function(ok){con=ok;estadoRed()});
+Sala.alCambiarCola(function(n){pend=n;estadoRed();if(estado)pintar()});
+
+function entrar(){
+  m.innerHTML='<h1>Entra a la sala</h1><p>Escribe el código que aparece en la pantalla:</p><input id="c" maxlength="10" autocomplete="off" placeholder="CÓDIGO"><button class="b p" id="go">Entrar</button><p id="err" class="e"></p>';
+  var c=document.getElementById("c");c.value=qs.get("c")||"";
+  function ir(){if(Sala.limpiarCodigo(c.value)===Sala.CODIGO){Sala.guardarLS("dentro","1");iniciar()}else document.getElementById("err").textContent="Ese código no es. Revisa la pantalla."}
+  document.getElementById("go").onclick=ir;c.onkeydown=function(e){if(e.key==="Enter")ir()};
+}
+function iniciar(){
+  m.innerHTML='<p class="s">Conectando…</p>';linkCompleta();
+  Sala.votante(function(e){estado=e;cambiar=false;pintar()});
+}
+function pintar(){
+  var e=estado,q=e.q;
+  if(q<0){m.innerHTML='<h1>¡Estás dentro!</h1><div class="ok">Tu nombre anónimo es <b>'+h(Sala.miAlias())+'</b>.</div><p>Mira la pantalla: las preguntas aparecerán aquí solas.</p>';return}
+  if(q>=P.length){m.innerHTML='<h1>¡Gracias por participar!</h1><p>Tus respuestas ya son parte de “la sala”.</p>';return}
+  var p=P[q],mia=Sala.misRespuestas()[p.id],html='<p class="s">Pregunta '+(q+1)+' de '+P.length+'</p><h1>'+h(p.titulo)+'</h1>';
+  if(e.fase==="revelado"){html+=resultado(p,mia);m.innerHTML=html;return}
+  if(mia!==undefined&&!cambiar){
+    html+='<div class="ok">✓ Respondiste: <b>'+h(texto(p,mia))+'</b><br><span class="s">'+(pend?"Enviando… se reintenta solo":"Recibido. Mira la pantalla.")+'</span></div><button class="b" id="cb">Cambiar respuesta</button>';
+    m.innerHTML=html;document.getElementById("cb").onclick=function(){cambiar=true;pintar()};return}
+  if(p.tipo==="opciones"){p.opciones.forEach(function(o,i){html+='<button class="b'+(mia===i?" on":"")+'" data-i="'+i+'">'+h(o)+'</button>'});m.innerHTML=html;
+    [].forEach.call(m.querySelectorAll("[data-i]"),function(b){b.onclick=function(){enviar(p,+b.dataset.i)}})}
+  else if(p.tipo==="palabra"){html+='<input class="w" id="w" maxlength="20" placeholder="Tu palabra" autocomplete="off"><button class="b p" id="ok">Enviar</button>';m.innerHTML=html;
+    var w=document.getElementById("w");function ok(){var v=w.value.trim().split(/\s+/)[0];if(v)enviar(p,v.slice(0,20))}
+    document.getElementById("ok").onclick=ok;w.onkeydown=function(ev){if(ev.key==="Enter")ok()}}
+  else{var v=mia===undefined?50:mia;html+='<div class="n"><span id="nv">'+v+'</span>%</div><input type="range" id="r" min="0" max="100" value="'+v+'" style="padding:0"><button class="b p" id="ok">Enviar mi apuesta</button>';m.innerHTML=html;
+    var r=document.getElementById("r");r.oninput=function(){document.getElementById("nv").textContent=r.value};
+    document.getElementById("ok").onclick=function(){enviar(p,+r.value)}}
+}
+function texto(p,v){return p.tipo==="opciones"?p.opciones[v]:p.tipo==="numero"?v+"%":v}
+function enviar(p,v){Sala.votar(p.id,v);cambiar=false;pintar()}
+function resultado(p,mia){
+  var s=mia!==undefined?'<div class="ok">Tu respuesta: <b>'+h(texto(p,mia))+'</b></div>':"";
+  if(p.tipo==="numero"){var d=mia===undefined?null:Math.abs(mia-p.respuesta);
+    return s+'<div class="tec"><b>Respuesta: '+fmt(p.respuesta)+'%</b>'+(d!==null?'<br>Estuviste a '+fmt(d)+' puntos'+(d<=5?" 🎯 ¡casi exacto!":""):"")+'</div>'}
+  var t="";if(p.tec)p.opciones.forEach(function(o,i){t+=o+": <b>"+fmt(p.tec[i])+"%</b><br>"});
+  return s+'<div class="tec">'+t+'<span class="s" style="color:#4d0509">'+h(p.tecNota)+'</span></div>';
+}
+if(qs.get("c")&&Sala.limpiarCodigo(qs.get("c"))===Sala.CODIGO||Sala.leerLS("dentro")||(Sala.modo==="local"&&window.parent!==window))iniciar();else entrar();
+estadoRed();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8A0B14">
+<title>La sala vs. el TEC · versión completa</title>
+<!--
+  VERSIÓN COMPLETA del celular: misma lógica que la ligera (index.html),
+  pero con las ilustraciones de la presentación, animaciones, confeti,
+  vibración y fichas de sugerencias. Pesa ~200 KB con todas las imágenes.
+-->
+<style>
+:root{--rojo:#8A0B14;--osc:#4d0509;--crema:#ECE8E3;--dur:#E9AA8C}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font:17px/1.45 Arial,Helvetica,sans-serif;color:#2a0a0c;background:var(--crema);overflow-x:hidden}
+#cora{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#cora span{position:absolute;bottom:-40px;color:var(--rojo);opacity:.12;animation:sube linear infinite}
+@keyframes sube{to{transform:translateY(-115vh) rotate(25deg)}}
+header{position:sticky;top:0;z-index:3;background:var(--rojo);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 18px rgba(77,5,9,.25)}
+header b{letter-spacing:.12em;font-size:13px}
+#st{font-size:12px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.15)}
+main{position:relative;z-index:1;max-width:540px;margin:auto;padding:18px 18px 40px}
+.card{background:#fff;border-radius:24px;padding:22px;box-shadow:0 10px 40px rgba(77,5,9,.12);animation:entra .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes entra{from{opacity:0;transform:translateY(24px) scale(.97)}}
+.hero{display:block;margin:-6px auto 8px;max-height:210px;max-width:80%;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(77,5,9,.18));animation:flota 5s ease-in-out infinite}
+@keyframes flota{50%{transform:translateY(-8px)}}
+.num{font-size:12px;letter-spacing:.14em;color:var(--rojo);font-weight:700;text-transform:uppercase}
+h1{font-size:25px;line-height:1.2;color:var(--rojo);margin:.3em 0 .7em}
+.op{display:flex;align-items:center;gap:12px;width:100%;padding:16px 18px;margin:10px 0;border:0;border-radius:16px;background:var(--crema);color:var(--osc);font:700 17px Arial;text-align:left;transition:transform .15s,background .2s}
+.op:active{transform:scale(.97)}.op i{font-style:normal;font-size:24px}
+.op.on{background:var(--rojo);color:#fff}
+.btn{display:block;width:100%;padding:17px;margin-top:14px;border:0;border-radius:16px;background:var(--rojo);color:#fff;font:700 18px Arial;box-shadow:0 6px 0 var(--osc);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--osc)}
+.btn.sec{background:#fff;color:var(--rojo);border:2px solid var(--rojo);box-shadow:none}
+input[type=text]{width:100%;padding:16px;font:700 22px Arial;border:3px solid var(--dur);border-radius:16px;text-align:center;outline:none}
+input[type=text]:focus{border-color:var(--rojo)}
+.cod{text-transform:uppercase;letter-spacing:.2em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chips button{border:0;border-radius:20px;padding:8px 14px;background:var(--crema);color:var(--rojo);font:700 15px Arial}
+.big{font-size:84px;font-weight:700;color:var(--rojo);text-align:center;line-height:1}
+.big small{font-size:36px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:10px;background:linear-gradient(90deg,var(--rojo) var(--p,50%),var(--crema) var(--p,50%));margin:24px 0 6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:44px;height:44px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A0B14' d='M12 21s-7-4.5-9.5-9C.8 8.6 2.9 5 6.4 5c2 0 3.3 1.1 4 2.3h.1C11.3 6.1 12.6 5 14.6 5c3.5 0 5.6 3.6 3.9 7-2.5 4.5-6.5 9-6.5 9z'/%3E%3C/svg%3E") center/26px no-repeat;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-thumb{width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid var(--rojo)}
+.ok{display:flex;gap:14px;align-items:center;background:var(--crema);border-radius:16px;padding:16px;margin:8px 0}
+.ok .tic{flex:none;width:46px;height:46px;border-radius:50%;background:var(--rojo);color:#fff;display:grid;place-items:center;font-size:24px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(0)}}
+.s{color:#7a5a5c;font-size:14px}.e{color:#b00020;font-weight:700}
+.tec{background:linear-gradient(135deg,var(--rojo),var(--osc));color:#fff;border-radius:18px;padding:18px;margin-top:14px}
+.tec .fila{margin:10px 0}.tec .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:4px}
+.tec .bar div{height:100%;background:var(--dur);width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.yo{display:inline-block;background:var(--dur);color:var(--osc);padding:4px 12px;border-radius:20px;font-weight:700}
+footer{position:relative;z-index:1;text-align:center;padding:0 16px 30px;font-size:14px}a{color:var(--rojo)}
+canvas#cf{position:fixed;inset:0;pointer-events:none;z-index:5}
+.espera{text-align:center}.latido{font-size:70px;animation:lat 1.1s infinite}
+@keyframes lat{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}45%{transform:scale(1.12)}}
+</style>
+</head>
+<body>
+<div id="cora"></div>
+<canvas id="cf"></canvas>
+<header><b>LA SALA vs. EL TEC</b><span id="st">conectando…</span></header>
+<main id="m"></main>
+<footer id="f"></footer>
+<script src="config.js"></script>
+<script src="red.js"></script>
+<script>
+(function(){
+"use strict";
+var P=CONFIG.PREGUNTAS,m=document.getElementById("m"),st=document.getElementById("st"),f=document.getElementById("f");
+var qs=new URLSearchParams(location.search),estado=null,cambiar=false,pend=0,con=true,ultimaQ=null;
+var ICONOS={q1:["💘","🙅"],q3:["💓","🦋","😰","🌙","🍽️"],q4:["🧍","💭","🌗"],q6:["🫀","🧠","👥"]};
+function h(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(n){return String(Math.round(n*10)/10).replace(".",",")}
+
+// Corazones flotando de fondo
+(function(){var c=document.getElementById("cora");for(var i=0;i<14;i++){var s=document.createElement("span");s.textContent="♥";
+s.style.left=Math.random()*100+"%";s.style.fontSize=(14+Math.random()*30)+"px";s.style.animationDuration=(9+Math.random()*12)+"s";s.style.animationDelay=(-Math.random()*20)+"s";c.appendChild(s)}})();
+
+// Confeti
+var cv=document.getElementById("cf"),cx=cv.getContext("2d"),piezas=[];
+function confeti(){cv.width=innerWidth;cv.height=innerHeight;for(var i=0;i<90;i++)piezas.push({x:innerWidth/2,y:innerHeight*.55,vx:(Math.random()-.5)*14,vy:-Math.random()*15-4,r:Math.random()*6+4,c:["#8A0B14","#E9AA8C","#4d0509","#f3c9b5"][i%4],v:Math.random()*6,a:0});
+  if(piezas.length===90)anim();if(navigator.vibrate)try{navigator.vibrate([30,40,30])}catch(e){}}
+function anim(){cx.clearRect(0,0,cv.width,cv.height);piezas=piezas.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.a+=p.v;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a/20);cx.fillStyle=p.c;cx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);cx.restore();return p.y<cv.height+20});if(piezas.length)requestAnimationFrame(anim);else cx.clearRect(0,0,cv.width,cv.height)}
+
+function estadoRed(){st.textContent=!con?"● sin señal":pend?"● enviando…":"● en vivo"}
+Sala.alCambiarConexion(function(ok){con=ok;estadoRed()});
+Sala.alCambiarCola(function(n){pend=n;estadoRed();if(estado)pintar(false)});
+
+function entrar(){
+  m.innerHTML='<div class="card"><img class="hero" src="img/pareja.webp" alt=""><h1>Entra a la sala</h1><p>Escribe el código que ves en la pantalla:</p><input type="text" class="cod" id="c" maxlength="10" autocomplete="off" placeholder="CÓDIGO"><button class="btn" id="go">Entrar ❤</button><p id="err" class="e"></p></div>';
+  var c=document.getElementById("c");c.value=qs.get("c")||"";
+  function ir(){if(Sala.limpiarCodigo(c.value)===Sala.CODIGO){Sala.guardarLS("dentro","1");iniciar()}else{document.getElementById("err").textContent="Ese código no es. Revisa la pantalla.";c.animate&&c.animate([{transform:"translateX(-8px)"},{transform:"translateX(8px)"},{transform:"none"}],{duration:250,iterations:2})}}
+  document.getElementById("go").onclick=ir;c.onkeydown=function(e){if(e.key==="Enter")ir()};
+}
+function iniciar(){
+  m.innerHTML='<div class="card espera"><div class="latido">💓</div><p class="s">Conectando…</p></div>';
+  var u=new URLSearchParams(location.search);u.set("c",Sala.CODIGO);
+  f.innerHTML='¿La señal está lenta? <a href="'+(qs.get("lig")||"index.html")+'?'+u+'">Cambiar a versión ligera</a>';
+  Sala.votante(function(e){estado=e;cambiar=false;pintar(true)});
+}
+function pintar(nuevo){
+  var e=estado,q=e.q,html;
+  if(q<0){m.innerHTML='<div class="card espera"><div class="latido">💓</div><h1>¡Estás dentro!</h1><p>Tu nombre anónimo es<br><span class="yo">'+h(Sala.miAlias())+'</span></p><p class="s">Las preguntas aparecen aquí solas cuando el grupo avance.</p></div>';return}
+  if(q>=P.length){m.innerHTML='<div class="card espera"><img class="hero" src="img/pareja.webp" alt=""><h1>¡Gracias por participar!</h1><p>“¿Qué es el amor para ti… y qué parte de esa respuesta es realmente tuya?”</p></div>';if(nuevo)confeti();return}
+  var p=P[q],mia=Sala.misRespuestas()[p.id];
+  html='<div class="card"'+(nuevo||ultimaQ!==q?"":' style="animation:none"')+'><img class="hero" src="img/'+p.img+'.webp" alt=""><div class="num">Pregunta '+(q+1)+' de '+P.length+'</div><h1>'+h(p.titulo)+'</h1>';
+  ultimaQ=q;
+  if(e.fase==="revelado"){m.innerHTML=html+resultado(p,mia)+'</div>';requestAnimationFrame(function(){[].forEach.call(m.querySelectorAll("[data-w]"),function(d){d.style.width=d.dataset.w+"%"})});return}
+  if(mia!==undefined&&!cambiar){
+    m.innerHTML=html+'<div class="ok"><div class="tic">✓</div><div>Respondiste: <b>'+h(texto(p,mia))+'</b><br><span class="s">'+(pend?"Enviando… se reintenta solo":"¡Recibido! Mira la pantalla 👀")+'</span></div></div><button class="btn sec" id="cb">Cambiar respuesta</button></div>';
+    document.getElementById("cb").onclick=function(){cambiar=true;pintar(false)};return}
+  if(p.tipo==="opciones"){var ic=ICONOS[p.id]||[];p.opciones.forEach(function(o,i){html+='<button class="op'+(mia===i?" on":"")+'" data-i="'+i+'"><i>'+(ic[i]||"•")+'</i>'+h(o)+'</button>'});m.innerHTML=html+'</div>';
+    [].forEach.call(m.querySelectorAll("[data-i]"),function(b){b.onclick=function(){b.classList.add("on");setTimeout(function(){enviar(p,+b.dataset.i)},160)}})}
+  else if(p.tipo==="palabra"){html+='<input type="text" id="w" maxlength="20" placeholder="Tu palabra…" autocomplete="off"><div class="chips">'+p.sugerencias.map(function(s){return'<button data-s="'+h(s)+'">'+h(s)+'</button>'}).join("")+'</div><button class="btn" id="ok">Enviar a la nube ☁️</button>';m.innerHTML=html+'</div>';
+    var w=document.getElementById("w");function ok(){var v=w.value.trim().split(/\s+/)[0];if(v)enviar(p,v.slice(0,20));else w.focus()}
+    [].forEach.call(m.querySelectorAll("[data-s]"),function(b){b.onclick=function(){w.value=b.dataset.s}});
+    document.getElementById("ok").onclick=ok;w.onkeydown=function(ev){if(ev.key==="Enter")ok()}}
+  else{var v=mia===undefined?50:mia;html+='<div class="big"><span id="nv">'+v+'</span><small>%</small></div><input type="range" id="r" min="0" max="100" value="'+v+'" style="--p:'+v+'%"><div class="s" style="display:flex;justify-content:space-between"><span>Nadie</span><span>Todo el TEC</span></div><button class="btn" id="ok">Apostar 🎯</button>';m.innerHTML=html+'</div>';
+    var r=document.getElementById("r");r.oninput=function(){document.getElementById("nv").textContent=r.value;r.style.setProperty("--p",r.value+"%")};
+    document.getElementById("ok").onclick=function(){enviar(p,+r.value)}}
+}
+function texto(p,v){return p.tipo==="opciones"?p.opciones[v]:p.tipo==="numero"?v+"%":v}
+function enviar(p,v){Sala.votar(p.id,v);cambiar=false;confeti();pintar(false)}
+function resultado(p,mia){
+  var s=mia!==undefined?'<div class="ok"><div class="tic">✓</div><div>Tu respuesta: <b>'+h(texto(p,mia))+'</b></div></div>':"";
+  if(p.tipo==="numero"){var d=mia===undefined?null:Math.abs(mia-p.respuesta);if(d!==null&&d<=5)setTimeout(confeti,300);
+    return s+'<div class="tec"><div class="s" style="color:#f3c9b5">LA RESPUESTA ES</div><div class="big" style="color:#fff">'+fmt(p.respuesta)+'<small>%</small></div>'+(d!==null?'<p>Estuviste a <b>'+fmt(d)+'</b> puntos '+(d<=5?"🎯 ¡casi exacto!":d<=15?"👏 ¡muy cerca!":"😅")+'</p>':"")+'<div class="s" style="color:#f3c9b5">'+h(p.tecNota)+'</div></div>'}
+  if(p.tipo==="palabra")return s+'<div class="tec">'+p.voces.map(function(v){return"<p>"+h(v)+"</p>"}).join("")+'<div class="s" style="color:#f3c9b5">'+h(p.tecNota)+'</div></div>';
+  var t="";if(p.tec)p.opciones.forEach(function(o,i){t+='<div class="fila">'+h(o)+' <b style="float:right">'+fmt(p.tec[i])+'%</b><div class="bar"><div data-w="'+p.tec[i]+'"></div></div></div>'});
+  return s+'<div class="tec"><div class="s" style="color:#f3c9b5">EN EL TEC…</div>'+t+'<div class="s" style="color:#f3c9b5;margin-top:8px">'+h(p.tecNota)+'</div></div>';
+}
+if(qs.get("c")&&Sala.limpiarCodigo(qs.get("c"))===Sala.CODIGO||Sala.leerLS("dentro")||(Sala.modo==="local"&&window.parent!==window))iniciar();else entrar();
+estadoRed();
+})();
+</script>
+</body>
+</html>
