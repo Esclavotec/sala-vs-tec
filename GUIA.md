@@ -32,7 +32,7 @@ El público responde desde el celular (QR **o** dirección + código) y la panta
 | `red.js` | Conexión (Firebase por REST, sin librerías) + cola de reintentos + modo demo. |
 | `qr.js` | Generador de QR propio (funciona sin internet). |
 | `img/` | Imágenes de la presentación comprimidas. |
-| `diapositivas/` | Las 25 diapositivas como imágenes (modo presentación). |
+| `diapositivas/` | Las 25 diapositivas como imágenes, más una imagen por paso de animación y `animaciones.js` con los tiempos. |
 | `database.rules.json`, `firebase.json` | Configuración para Firebase. |
 | `pruebas/` | Pruebas automáticas (no se suben a internet). |
 
@@ -102,10 +102,11 @@ Diap 1 → Diap 2 (PREGUNTA 1: se activa sola en los celulares, contador "EN VIV
 | I | Portada con el QR grande (otra vez I para volver) |
 | F | Pantalla completa |
 
-- Los botones están ocultos para no tapar las diapositivas: aparecen al mover el mouse.
+- Los botones y el contador **EN VIVO · N respuestas** están en una **franja negra arriba**; la diapositiva se acomoda debajo y nada la tapa.
+- **Animaciones del PowerPoint**: se recrearon la transición desvanecer y las animaciones de las diapositivas 5, 19 y 20 (automáticas) y 13, 17 y 21 (aparecen con →, igual que con clic en PowerPoint). Las barras de la 19 entran con barrido.
 - **Palabras inapropiadas en la nube**: un clic sobre la palabra la oculta.
 - **Si se cae el internet**: aparece un aviso amarillo; los celulares guardan el voto y lo envían solos al volver la red. Mientras tanto, usen la mano alzada.
-- **Si cambias el PowerPoint**: hay que volver a convertir las diapositivas en imágenes (carpeta `diapositivas/`). El modo anterior, solo con preguntas, sigue disponible en `pantalla.html?sinpresentacion`.
+- **Si cambias el PowerPoint**: hay que volver a convertir las diapositivas (carpeta `diapositivas/`). `animaciones.js` se genera leyendo las animaciones del .pptx, así que también se actualizan solas. El modo anterior, solo con preguntas, sigue disponible en `pantalla.html?sinpresentacion`.
 
 ## 6. Ensayar sin internet
 
@@ -129,6 +130,7 @@ Abre `demo.html` (o la demo publicada): verás la pantalla y dos celulares simul
 | ✔ | `prueba_presentacion.py`: 16 pruebas del modo presentación (pregunta automática al llegar a la diapositiva, contador, resultados, revelado, volver atrás, última diapositiva, portada) |
 | ✔ | La nube de palabras no se superpone (se mide cada palabra en pantalla; 0 solapes con 15 palabras) |
 | ✔ | `prueba_vista.py`: la vista del público no cuenta en los resultados |
+| ✔ | `prueba_animaciones.py`: la franja no tapa la diapositiva, el contador está en la esquina, animaciones automáticas, por clic y con barrido, y al volver atrás no se repiten |
 
 ## 8. Privacidad
 

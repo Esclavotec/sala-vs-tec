@@ -25,7 +25,7 @@ async def main():
     src=await pg.get_attribute(".diap img","src");check(src.endswith("02.webp"),"Flecha → muestra la diapositiva 2")
     txt=await tels[0].text_content("main");check("enamorado" in txt,"Al llegar a la diapositiva 2 la pregunta 1 aparece sola en el celular")
     await tels[0].click("text=Sí");await tels[1].click("text=No");await pg.wait_for_timeout(2500)
-    b=await pg.text_content("#envivo");check("2" in b,"La diapositiva muestra el contador en vivo: "+b.strip())
+    b=await pg.text_content("#envivoTop");check("2" in b,"La diapositiva muestra el contador en vivo: "+b.strip())
     await pg.screenshot(path="shots/pres_d2.png")
     await pg.keyboard.press("ArrowRight");await pg.wait_for_timeout(1500)
     check(await pg.locator("#zona .barras").count()==1,"Siguiente flecha → resultados en vivo de la pregunta 1")

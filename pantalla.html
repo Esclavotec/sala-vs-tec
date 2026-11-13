@@ -117,15 +117,21 @@ h1{color:var(--rojo);font-size:5vh;line-height:1.12;margin:1vh 0 2.4vh}
 /* ----- Modo presentación ----- */
 body.endiap header{display:none}
 .diap{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
-.diap img{width:100%;height:100%;object-fit:contain;animation:fundido .35s ease}
-@keyframes fundido{from{opacity:.35}}
-.envivo{position:absolute;right:2vw;bottom:2.4vh;background:rgba(77,5,9,.92);color:#fff;padding:1vh 1.4vw;border-radius:3vh;font-size:1.8vh;font-weight:700;letter-spacing:.04em;box-shadow:0 1vh 3vh rgba(0,0,0,.3)}
-.envivo .pt{display:inline-block;width:1.2vh;height:1.2vh;border-radius:50%;background:#7CF08C;margin-right:.6vw;vertical-align:middle;animation:parp 1.4s infinite}
-.envivo small{font-weight:400;opacity:.75;margin-left:.6vw}
-body.pres footer{position:fixed;left:0;right:0;bottom:0;z-index:6;transform:translateY(100%);transition:transform .25s}
-body.pres.ctl footer{transform:none}
-body.pres:not(.ctl){cursor:none}
+.diap.entra{animation:transicion .5s ease}
+@keyframes transicion{from{opacity:0}}
+.lienzo{position:relative;flex:none}
+.lienzo img{position:absolute;inset:0;width:100%;height:100%;display:block}
+body.endiap main{background:#000}
+/* Franja negra superior (modo presentación): nada queda encima de la diapositiva */
+body.pres footer{order:-1;background:#0b0b0b;border:0;padding:.6vh 1.2vw;gap:.6vw}
+body.pres footer button{background:#232323;color:#eee;font-size:1.5vh;padding:.7vh .9vw}
+body.pres footer button.p{background:var(--rojo);color:#fff}
+body.pres footer .modo{display:none}
 .dnum{font-size:1.6vh;font-weight:700;color:var(--rojo);white-space:nowrap}
+body.pres .dnum{color:var(--dur)}
+#envivoTop{display:none;background:var(--rojo);color:#fff;border-radius:2vh;padding:.55vh 1vw;font-size:1.5vh;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+#envivoTop .pt{display:inline-block;width:1vh;height:1vh;border-radius:50%;background:#7CF08C;margin-right:.5vw;vertical-align:middle;animation:parp 1.4s infinite}
+#envivoTop small{font-weight:400;opacity:.8;margin-left:.5vw}
 footer{flex:none;display:flex;gap:.8vw;align-items:center;padding:1vh 2vw;background:#fff;border-top:1px solid rgba(0,0,0,.06)}
 footer button{white-space:nowrap;border:0;border-radius:1vh;padding:1vh 1.2vw;font:700 1.7vh Arial;background:var(--crema);color:var(--rojo);cursor:pointer}
 footer button.p{background:var(--rojo);color:#fff}
@@ -171,9 +177,11 @@ footer .dots i.on{background:var(--rojo)}
   <button id="bSim" style="display:none">Simular 30 votos</button>
   <button id="bReset">↺ Reiniciar votos</button>
   <button id="bFull" title="Tecla F">Pantalla completa</button>
+  <span id="envivoTop"></span>
 </footer>
 <script src="config.js"></script>
 <script src="qr.js"></script>
+<script src="diapositivas/animaciones.js"></script>
 <script src="red.js"></script>
 <script>
 (function(){
@@ -235,11 +243,47 @@ function irPaso(i,forzar){
   else q=ps.n===D.total?P.length:-1;   // entre preguntas los celulares esperan; la última diapositiva = gracias
   if(forzar||q!==estado.q||f!==estado.fase){estado={q:q,fase:f,reinicio:estado.reinicio};publicar()}else pintar(true);
 }
-function siguiente(){if(pres)irPaso(paso+1);else ir(estado.q+1)}
-function anterior(){if(pres)irPaso(paso-1);else ir(estado.q-1)}
+// ---------- Diapositivas con transición y animaciones del PowerPoint ----------
+// diapositivas/animaciones.js (generado desde el .pptx) dice qué elementos aparecen,
+// cuándo y cómo (desvanecer o barrido). "auto" se reproduce al llegar; "clic" con →.
+var A=window.ANIMACIONES||{},diapActual=null,gruposHechos=0,temporizadores=[],direccion=1;
+function rutaImg(nombre){return(D.carpeta||"diapositivas/")+nombre}
+function ajustarLienzo(){var l=document.querySelector(".diap:last-child .lienzo"),m=$("main");if(!l||!m)return;var W=m.clientWidth,H=m.clientHeight,w=Math.min(W,H*16/9);l.style.width=w+"px";l.style.height=(w*9/16)+"px"}
+function mostrarDiap(n,atras){
+  temporizadores.forEach(clearTimeout);temporizadores=[];
+  var m=$("main"),a=A[n];
+  Array.prototype.slice.call(m.children).forEach(function(c){if(!c.classList.contains("diap"))c.remove()});
+  var capa=document.createElement("div");capa.className="diap"+(diapActual!==null?" entra":"");
+  capa.innerHTML='<div class="lienzo"><img alt="Diapositiva '+n+'" src="'+(a&&!atras?rutaImg(a.inicio):rutaDiap(n))+'"></div>';
+  m.appendChild(capa);ajustarLienzo();
+  var viejas=Array.prototype.slice.call(m.querySelectorAll(".diap")).filter(function(c){return c!==capa});
+  setTimeout(function(){viejas.forEach(function(v){v.remove()})},550);
+  diapActual=n;gruposHechos=a?(atras?a.grupos.length:0):0;
+  if(a&&!atras)correrAutomaticas(0);
+}
+function correrAutomaticas(desfase){var a=A[diapActual];while(a&&gruposHechos<a.grupos.length&&a.grupos[gruposHechos].disparo==="auto"){desfase=reproducir(a.grupos[gruposHechos],desfase);gruposHechos++}}
+function reproducir(g,desfase){
+  var l=document.querySelector(".diap:last-child .lienzo"),fin=desfase||0;
+  g.pasos.forEach(function(p){
+    var t=(desfase||0)+p.t;fin=Math.max(fin,t+p.d);
+    temporizadores.push(setTimeout(function(){
+      if(!l||!l.isConnected)return;
+      var c=p.caja,T=Math.max(0,c[1]-.3),Rr=Math.max(0,100-c[2]-.3),B=Math.max(0,100-c[3]-.3),L=Math.max(0,c[0]-.3);
+      var im=document.createElement("img");im.src=rutaImg(p.img);im.alt="";
+      var final="inset("+T+"% "+Rr+"% "+B+"% "+L+"%)";im.style.clipPath=final;l.appendChild(im);
+      if(p.ef==="barrido")im.animate([{clipPath:"inset("+T+"% "+(100-L)+"% "+B+"% "+L+"%)"},{clipPath:final}],{duration:p.d,easing:"ease-out",fill:"forwards"});
+      else im.animate([{opacity:0},{opacity:1}],{duration:p.d,easing:"ease",fill:"forwards"});
+    },t));
+  });
+  return fin;
+}
+function siguiente(){
+  if(pres&&!verPortada&&pasos[paso].t==="d"){var a=A[pasos[paso].n];
+    if(a&&diapActual===pasos[paso].n&&gruposHechos<a.grupos.length){reproducir(a.grupos[gruposHechos],0);gruposHechos++;correrAutomaticas(0);return}}
+  if(pres){direccion=1;irPaso(paso+1)}else ir(estado.q+1)}
+function anterior(){if(pres){direccion=-1;irPaso(paso-1)}else ir(estado.q-1)}
+addEventListener("resize",ajustarLienzo);
 function portadaToggle(){if(pres){verPortada=!verPortada;pintar(true)}else ir(-1)}
-var tCtl=null;
-addEventListener("mousemove",function(){if(!pres)return;document.body.classList.add("ctl");clearTimeout(tCtl);tCtl=setTimeout(function(){document.body.classList.remove("ctl")},2500)});
 
 // ---------- Cálculos ----------
 function votosDe(p){var v=(datos.votos||{})[p.id]||{};return Object.keys(v).map(function(k){return v[k]}).filter(function(x){return x&&x.v!==undefined&&x.a!==Sala.ALIAS_VISTA})}
@@ -263,16 +307,19 @@ function pintar(forzar){
   if(pres)$("dots").innerHTML='<span class="dnum">'+(verPortada?"Portada":ps.t==="d"?"Diapositiva "+ps.n+" / "+D.total:"Resultados · pregunta "+(ps.q+1))+'</span>';
   if(ps&&ps.t==="d"){
     var fd="d"+ps.n;
-    if(forzar||firmaPintada!==fd){firmaPintada=fd;$("main").innerHTML='<div class="diap"><img src="'+rutaDiap(ps.n)+'" alt="Diapositiva '+ps.n+'">'+(ps.q!==null?'<div class="envivo" id="envivo"></div>':'')+'</div>'}
-    if(ps.q!==null){var pq=P[ps.q],nr=pq.tipo==="opciones"?conteo(pq).total:votosDe(pq).length;$("envivo").innerHTML='<span class="pt"></span>EN VIVO · <b>'+nr+'</b> respuestas<small>→ ver resultados</small>'}
+    if(firmaPintada!==fd||!document.querySelector("#main .diap")){firmaPintada=fd;mostrarDiap(ps.n,direccion<0)}else ajustarLienzo();
+    var ev=$("envivoTop");
+    if(ps.q!==null){var pq=P[ps.q],nr=pq.tipo==="opciones"?conteo(pq).total:votosDe(pq).length;ev.style.display="inline-block";ev.innerHTML='<span class="pt"></span>EN VIVO · <b>'+nr+'</b> respuestas<small>→ ver resultados</small>'}
+    else ev.style.display="none";
     pintarMano();return;
   }
+  if($("envivoTop"))$("envivoTop").style.display="none";
   var q=verPortada?-1:estado.q,main=$("main"),firma=q+"|"+estado.fase+"|"+verPortada;
   var nueva=forzar||firma!==firmaPintada;firmaPintada=firma;
   if(q<0){if(nueva)main.innerHTML=portada();$("nP")&&($("nP").textContent=g);pintarMano();return}
   if(q>=P.length){if(nueva)main.innerHTML=fin();else actualizarFin();pintarMano();return}
   var p=P[q];
-  if(nueva){main.innerHTML='<div class="vista"><div class="lado"><img src="img/'+p.img+'.webp" alt=""><span class="etq">Diapositiva '+p.diapositiva+'</span></div><div class="contenido'+(p.opciones&&p.opciones.length>3?' compacta':'')+'" id="cont"><div class="num">PREGUNTA '+(q+1)+' DE '+P.length+'</div><h1>'+h(p.titulo)+'</h1><div class="resp" id="resp"></div><div id="zona" style="flex:1;display:flex;flex-direction:column"></div></div></div>'}
+  if(nueva){diapActual=null;main.innerHTML='<div class="vista"><div class="lado"><img src="img/'+p.img+'.webp" alt=""><span class="etq">Diapositiva '+p.diapositiva+'</span></div><div class="contenido'+(p.opciones&&p.opciones.length>3?' compacta':'')+'" id="cont"><div class="num">PREGUNTA '+(q+1)+' DE '+P.length+'</div><h1>'+h(p.titulo)+'</h1><div class="resp" id="resp"></div><div id="zona" style="flex:1;display:flex;flex-direction:column"></div></div></div>'}
   if(p.tipo==="opciones")barras(p,nueva);else if(p.tipo==="palabra")nube(p,nueva);else adivina(p,nueva);
   pintarMano();
 }
